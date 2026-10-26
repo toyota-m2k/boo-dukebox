@@ -1,0 +1,142 @@
+﻿using io.github.toyota32k.BooLib.Server.http.model;
+using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Net.Sockets;
+using System.Reactive.Subjects;
+using System.Security.Cryptography.X509Certificates;
+using System.Threading;
+using System.Threading.Tasks;
+using io.github.toyota32k.BooLib.Utils;
+
+namespace io.github.toyota32k.BooLib.Server.http;
+
+public class HttpServer
+{
+    #region Fields
+
+    private TcpListener Listener = null!;
+    private HttpProcessor Processor;
+    //private bool IsActive = true;
+
+    #endregion
+
+    //private static readonly ILog log = LogManager.GetLogger(typeof(HttpServer));
+    private bool Alive = true;
+    public UtLog Logger;
+    /// <summary>true なら HTTPS リスナーとして起動 (cert 必須)。</summary>
+    public bool IsSecure { get; }
+
+    private BehaviorSubject<bool> _running = new BehaviorSubject<bool>(false);
+    public IObservable<bool> Running => _running;
+
+    private int IdGenerator = 0;
+    private int GenerateId() {
+        return Interlocked.Increment(ref IdGenerator);
+    }
+
+
+    //private WeakReference<IReportOutput> mReportOutput;
+    //private IReportOutput ReportOutput => mReportOutput?.GetValue();
+
+    #region Public Methods
+    public HttpServer(List<Route> routes, UtLog logger)
+        : this(routes, logger, null) {
+    }
+
+    public HttpServer(List<Route> routes, UtLog logger, X509Certificate2? certificate)
+    {
+        Processor = (certificate != null)
+            ? new SslHttpProcessor(certificate)
+            : new HttpProcessor();
+        IsSecure = certificate != null;
+        Logger = logger;
+
+        foreach (var route in routes)
+        {
+            Processor.AddRoute(route);
+        }
+    }
+
+    //public void Listen()
+    //{
+    //    this.Listener = new TcpListener(IPAddress.Any, this.Port);
+    //    this.Listener.Start();
+    //    while (this.IsActive)
+    //    {
+    //        TcpClient s = this.Listener.AcceptTcpClient();
+    //        Thread thread = new Thread(() =>
+    //        {
+    //            this.Processor.HandleClient(s);
+    //        });
+    //        thread.Start();
+    //        Thread.Sleep(1);
+    //    }
+    //}
+
+    public bool Start(int port)
+    {
+        if(_running.Value) { 
+            return false; 
+        }
+        try
+        {
+            Alive = true;
+            _running.OnNext(true);
+            Listener = new TcpListener(IPAddress.Any, port);
+            Listener.Start();
+            Logger.Info($"{(IsSecure ? "HTTPS" : "HTTP")} Server Running... Port={port}");
+        }
+        catch (Exception e)
+        {
+            Logger.Error(e, "cannot start server.");
+            Stop();
+            return false;
+        }
+        Task.Run(async () =>
+        {
+            while (Alive)
+            {
+                try
+                {
+                    TcpClient s = await Listener.AcceptTcpClientAsync();
+                    int id = GenerateId();
+                    Processor.HandleClient(id, s);
+                }
+                catch (Exception e)
+                {
+                    if (Alive)
+                    {
+                        //ReportOutput?.ErrorOutput(e.ToString());
+                        Logger.Error(e, "cannot listen.");
+                    }
+                }
+            }
+            lock (this)
+            {
+                _running.OnNext(false);
+                Listener?.Stop();
+                Logger.Info("HTTP Server Stopped.");
+            }
+        });
+        return true;
+    }
+
+    public void Stop()
+    {
+        lock (this)
+        {
+            if(!Alive) {
+                return;
+            }
+            Alive = false;
+            _running.OnNext(false);
+            Listener?.Stop();
+        }
+    }
+    #endregion
+
+}
+
+
+
