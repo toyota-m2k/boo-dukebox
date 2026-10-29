@@ -12,7 +12,7 @@ public interface IMediaFile {
     public string Type { get; }                         // ファイルの拡張子（.は含まない: eg. mp4, jpg, png, mp3, m4a）
     public string Path { get; }
 
-    public string CopyPath { get; }
+    public bool Converted { get; }
 
     public long CreationDate { get; }                      // ファイルの作成日時（UnixTime）
     public long RegisteredDate { get; }                    // SAに登録された日時（UnixTime）
@@ -27,7 +27,7 @@ public interface IMediaFile {
     public long Duration { get; }
 
 
-    public string FilePath { get; }                        // ファイルの絶対パスを返す。CopyPathが設定されている場合はCopyPathを返す。}
+    //public string FilePath { get; }                        // ファイルの絶対パスを返す。CopyPathが設定されている場合はCopyPathを返す。}
     public string BooMediaType { get; }                     // Boo ProtocolのMediaTypeを返す。動画なら"v"、画像なら"p"、音声なら"a"、それ以外は""を返す。
     public string ContentType { get; }                      // MIMEタイプ（Content-Type）を返す。mp4ならvideo/mp4、pngならimage/png、jpg/jpegならimage/jpeg、mp3/m4aならaudio/mpeg
 
@@ -40,7 +40,7 @@ public interface IMediaFile {
      * 「カテゴリなし」に変更する場合は 0 を指定する。
      */
     public IMediaFile Modify(
-        string? name = null, long? size = null, long? duration = null, string? copyPath = null, long? lastModified = null,
+        string? name = null, long? size = null, long? duration = null, bool? converted = null, long? lastModified = null,
         bool? isDeleted=null, int? rating = null, int? mark = null, string? label = null, long? category = null, string? chapters = null);
 
 }

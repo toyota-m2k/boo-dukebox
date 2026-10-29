@@ -15,7 +15,7 @@ public class SourceDirectoryEntry : ISourceDirectory {
             Id INTEGER NOT NULL PRIMARY KEY,
             Path TEXT NOT NULL UNIQUE,
             Recursive INTEGER NOT NULL DEFAULT 1,
-            Category INTEGER DEFAULT NULL,
+            Category INTEGER DEFAULT NULL
         )",
     };
 

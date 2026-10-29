@@ -1,7 +1,8 @@
 {
   "profiles": {
     "DukeBox (Package)": {
-      "commandName": "MsixPackage"
+      "commandName": "MsixPackage",
+      "nativeDebugging": true
     },
     "DukeBox (Unpackaged)": {
       "commandName": "Project"

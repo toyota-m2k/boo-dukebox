@@ -1,4 +1,5 @@
-﻿using DukeBox.model;
+﻿using DukeBox.DB;
+using DukeBox.model;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -37,5 +38,14 @@ public interface IDBService {
     Task<bool> EditSourceDirectoryStore(Func<IMutableSourceDirectoryStore, Task<bool>> fn);
 
     ITransaction BeginTransaction(bool saveOnDispose=true);
+
+    // このプロパティは、SettingsServiceを参照したいところだが、SettingsServiceは、そのストレージとして、
+    // DBService.KVStoreを利用しているため、DBServiceから、SettingsServiceを参照すると、循環参照になってしまう。
+    // そのため、SettingsServiceのConvertedSourcePathプロパティの値を、DBServiceにコピーして利用する。
+    string ConvertedSourcePath { get; set; }
+    string GetConvertedFilePath(IMediaFile entry);
+    void RemoveSourceDirectory(ISourceDirectory srcDirEntry);
+    void RemoveCategory(CategoryEntry category);
+    void RemoveMediaFiles(IEnumerable<IMediaFile> files);
 }
 

@@ -2,6 +2,7 @@
 using io.github.toyota32k.BooLib.Utils;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 
 namespace DukeBox.DI.concrete; 
@@ -12,6 +13,16 @@ public class SettingsService : ISettingsService {
     public SettingsService(IDBService dBService, IAppConfigService appConfigService) {
         DBService = dBService;  
         AppConfigService = appConfigService;
+    }
+
+    static readonly string KEY_SCAN_INTERVAL = "ScanInterval";
+    static readonly TimeSpan DEFAULT_SCAN_INTERVAL = TimeSpan.FromMinutes(1);
+    public TimeSpan ScanInterval { 
+        get => TimeSpan.TryParse(DBService.KVStore[KEY_SCAN_INTERVAL], out var interval) ? interval : DEFAULT_SCAN_INTERVAL;
+        set => DBService.EditKVStore(store => {
+            store[KEY_SCAN_INTERVAL] = value.ToString();
+            return true;
+        });
     }
 
     static readonly string KEY_USE_FFMPEG = "UseFFMpeg";
@@ -44,9 +55,11 @@ public class SettingsService : ISettingsService {
         get => DBService.KVStore[KEY_CONVERTED_SOURCE_PATH] ?? string.Empty; 
         set => DBService.EditKVStore(store => {
             store[KEY_CONVERTED_SOURCE_PATH] = value;
+            DBService.ConvertedSourcePath = value;  // DI の cyclic dependency を回避するため、DBService のプロパティにコピーしておく。
             return true;
         });
     }
+
     static readonly string KEY_ENABLE_HTTP = "EnableHttp";
     public bool EnableHttp { 
         get => DBService.KVStore[KEY_ENABLE_HTTP] == "true"; 

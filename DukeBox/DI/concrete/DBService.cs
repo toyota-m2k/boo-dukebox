@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -25,6 +24,8 @@ public class DBService : IDBService {
     public ICategoryStore CategoryStore => MutableCategoryStore;
     public IMutableSourceDirectoryStore MutableSourceDirectoryStore;
     public ISourceDirectoryStore SourceDirectoryStore => MutableSourceDirectoryStore;
+    public string ConvertedSourcePath { get; set; } = string.Empty;
+    private string ActConvertedSourcePath => string.IsNullOrEmpty(ConvertedSourcePath) ? Path.Combine(ConfigService.AppDataPath, "Conv") : ConvertedSourcePath;
 
     public DBService(IAppConfigService configService) {
         this.ConfigService = configService;
@@ -176,6 +177,25 @@ public class DBService : IDBService {
         }
     }
 
+    private void removeSourceDirectoriesCore(IMutableMediaFileStore store, IEnumerable<ISourceDirectory> srcDirEntries) {
+        foreach (var srcDirEntry in srcDirEntries) {
+            IList<IMediaFile> files;
+            if (srcDirEntry.Recursive) {
+                files = store.Enumerable().Where(it => {
+                    return it.Path.StartsWith(srcDirEntry.Path, StringComparison.OrdinalIgnoreCase);
+                }).ToList();
+            }
+            else {
+                files = store.Enumerable().Where(it => {
+                    var fileName = Path.GetFileName(it.Path);
+                    return it.Path.Equals(Path.Combine(srcDirEntry.Path, fileName), StringComparison.OrdinalIgnoreCase);
+                }).ToList();
+            }
+            ((FileEntryList)store).Remove(files, ActConvertedSourcePath);
+            ((SourceDirectoryList)MutableSourceDirectoryStore).Remove(srcDirEntry);
+        }
+
+    }
 
     /**
      * SourceDirectoryStoreから、ソースディレクトリを削除する。
@@ -183,23 +203,15 @@ public class DBService : IDBService {
      * 
      * @param srcDirEntry 削除するソースディレクトリのエントリ
      */
-    public void RemoveSourceDirectory(SourceDirectoryEntry srcDirEntry) {
+    //public void RemoveSourceDirectory(IEnumerable<ISourceDirectory> srcDirEntries) {
+    //    using (var txn = BeginTransaction(true)) {
+    //        removeSourceDirectoriesCore(srcDirEntries);
+    //    }
+    //}
+    public void RemoveSourceDirectory(ISourceDirectory srcDirEntry) {
         using (var txn = BeginTransaction(true)) {
             EditMediaFileStore(store => {
-                IList<IMediaFile> files;
-                if (srcDirEntry.Recursive) {
-                    files = store.List().Where(it => {
-                        return it.Path.StartsWith(srcDirEntry.Path, StringComparison.OrdinalIgnoreCase);
-                    }).ToList();
-                }
-                else {
-                    files = store.List().Where(it => {
-                        var fileName = Path.GetFileName(it.Path);
-                        return it.Path.Equals(Path.Combine(srcDirEntry.Path, fileName), StringComparison.OrdinalIgnoreCase);
-                    }).ToList();
-                }
-                store.Remove(files);
-                ((SourceDirectoryList)MutableSourceDirectoryStore).Remove(srcDirEntry);
+                removeSourceDirectoriesCore(store, new[] { srcDirEntry });
                 return true;
             });
         }
@@ -207,19 +219,34 @@ public class DBService : IDBService {
 
     /**
      * CategoryStoreから、カテゴリを削除する。
-     * 削除するカテゴリに含まれるメディアファイルも削除される。
+     * 削除するカテゴリに含まれるSourceDirectoryと、その中のメディアファイルも削除される。
      * 
      * @param category 削除するカテゴリのエントリ
      */
     public void RemoveCategory(CategoryEntry category) {
         using (var txn = BeginTransaction(true)) {
             EditMediaFileStore(store => {
-                var files = store.List().Where(it => it.Category == category.Id).ToList();
-                store.Remove(files);
+                var files = store.Enumerable().Where(it => it.Category == category.Id).ToList();
+                ((FileEntryList)store).Remove(files, ActConvertedSourcePath);
+                var dirsInCategory = SourceDirectoryStore.List().Where(it => it.Category == category.Id).ToList();
+                removeSourceDirectoriesCore(store, dirsInCategory);
                 ((CategoryList)MutableCategoryStore).Remove(category);
                 return true;
             });
         }
+    }
+
+    public void RemoveMediaFiles(IEnumerable<IMediaFile> files) {
+        using (var txn = BeginTransaction(true)) {
+            EditMediaFileStore(store => {
+                ((FileEntryList)store).Remove(files, ActConvertedSourcePath);
+                return true;
+            });
+        }
+    }
+
+    public string GetConvertedFilePath(IMediaFile entry) {
+        return FileEntryList.GetConvertedFilePath(ActConvertedSourcePath, entry);
     }
 
     private class Transaction : ITransaction {
@@ -230,7 +257,7 @@ public class DBService : IDBService {
         public Transaction(DBConnector dbConnector, bool autoCommitOnDisposed = true) {
             _dbConnector = dbConnector;
             AutoCommitOnDisposed = autoCommitOnDisposed;
-            var x = _dbConnector.Database.BeginTransaction();
+            _txn = _dbConnector.Database.BeginTransaction();
         }
 
         public void Commit() {

@@ -1,4 +1,5 @@
 ﻿using DukeBox.model;
+using io.github.toyota32k.BooLib.Utils;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -15,8 +16,14 @@ public class CategoryList : IMutableCategoryStore {
         _categories = connector.Categories;
     }
 
-    public IEnumerable<ICategory> List() {
-        return _categories.OrderBy(it => it.SortOrder);
+    public IEnumerable<ICategory> Enumerable(bool tracking = false) {
+        return _categories.OrderBy(it => it.SortOrder).Let(it => 
+            tracking ? it.AsTracking() : it.AsNoTracking()
+        );
+    }
+
+    public IList<ICategory> List(bool tracking = false) {
+        return Enumerable(tracking).ToList();
     }
 
     public ICategory? Get(long id) {
@@ -30,8 +37,13 @@ public class CategoryList : IMutableCategoryStore {
         }
     }
 
-    public ICategory Add(string name, int sortOrder = 0, uint color = 0, string iconPath = "") {
+    public ICategory? Add(string name, int sortOrder = 0, uint color = 0, string iconPath = "") {
         lock (_connector) {
+            var current = GetByName(name);
+            if (current!=null) {
+                _connector._logger.Warn("CategoryList.Add: Category already exists. name={0}", name);
+                return null;
+            }
             var entry = new CategoryEntry() {
                 Name = name,
                 SortOrder = sortOrder,

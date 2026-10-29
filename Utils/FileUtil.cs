@@ -151,4 +151,15 @@ public static class FileUtil {
         Regex regex = new Regex($"[{Regex.Escape(invalidChars)}]");
         return regex.Replace(name, m => replaceChars[m.Value[0]].ToString());
     }
+
+    public static bool CreateFolder(string path) {
+        try {
+            if (!Directory.Exists(path)) {
+                Directory.CreateDirectory(path);
+            }
+            return true;
+        } catch {
+            return false;
+        }
+    }
 }

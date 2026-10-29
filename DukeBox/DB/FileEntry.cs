@@ -20,7 +20,7 @@ public class FileEntry : IMediaFile {
             Name TEXT NOT NULL,
             Size INTEGER DEFAULT 0,
             Type TEXT NOT NULL,
-            CopyPath TEXT,                          -- コピー先パス（コピー済みの場合のみ）
+            Converted INTEGER DEFAULT 0,                          -- 変換済みフラグ（0:未変換、1:変換済み）
             Duration INTEGER DEFAULT 0,
             CreationDate INTEGER DEFAULT 0,         -- 元ファイルの作成日時（UnixTime）
             LastModifiedDate INTEGER DEFAULT 0,     -- 登録後、ファイルが更新された場合の最終更新日時（UnixTime）
@@ -45,7 +45,7 @@ public class FileEntry : IMediaFile {
     [Required]
     public string Path { get; set; } = string.Empty;
 
-    public string? CopyPath { get; set; }
+    public bool Converted { get; set; }
 
     public long CreationDate { get; set; }                      // ファイルの作成日時（UnixTime）
     public long RegisteredDate { get; set; }                    // SAに登録された日時（UnixTime）
@@ -112,10 +112,10 @@ public class FileEntry : IMediaFile {
         }
     }
 
-    [NotMapped]
-    public string FilePath => string.IsNullOrEmpty(CopyPath) ? Path : CopyPath;
+    //[NotMapped]
+    //public string FilePath => string.IsNullOrEmpty(CopyPath) ? Path : CopyPath;
 
-    public FileEntry Modify(string? name = null, long? size = null, long? duration = null, string? copyPath = null, long? lastModified = null,
+    public FileEntry Modify(string? name = null, long? size = null, long? duration = null, bool? converted= null, long? lastModified = null,
         bool? deleted = null, int? rating = null, int? mark = null, string? label = null, long? category = null, string? chapters = null)
     {
         var src = this;
@@ -132,7 +132,7 @@ public class FileEntry : IMediaFile {
             Size = size ?? src.Size,
             Type = src.Type,
             Path = src.Path,
-            CopyPath = copyPath ?? src.CopyPath,
+            Converted = converted ?? src.Converted,
             CreationDate = src.CreationDate,
             RegisteredDate = src.RegisteredDate,
             LastModifiedDate = lastModified ?? src.LastModifiedDate,
@@ -231,16 +231,15 @@ public class FileEntry : IMediaFile {
     //    }
     //}
 
-    IMediaFile IMediaFile.Modify(string? name, long? size, long? duration, string? copyPath, long? lastModified, 
-        bool? isDeleted, int? rating, int? mark, string? label, long? category, string? chapters) {
-        int? deleted = isDeleted == null ? null : (isDeleted.Value ? 1 : 0);
-        return Modify(name, size, duration, copyPath, lastModified, deleted, rating, mark, label, category, chapters);
+    IMediaFile IMediaFile.Modify(string? name, long? size, long? duration, bool? converted, long? lastModified, 
+        bool? deleted, int? rating, int? mark, string? label, long? category, string? chapters) {
+        return Modify(name, size, duration, converted, lastModified, deleted, rating, mark, label, category, chapters);
     }
     string IMediaFile.Name => Name;
     long IMediaFile.Size => Size;
     string IMediaFile.Type => Type;
     string IMediaFile.Path => Path;
-    string IMediaFile.CopyPath => CopyPath ?? string.Empty;
+    bool IMediaFile.Converted => Converted;
     long IMediaFile.CreationDate => CreationDate;
     long IMediaFile.RegisteredDate => RegisteredDate;
     long IMediaFile.LastModifiedDate => LastModifiedDate;

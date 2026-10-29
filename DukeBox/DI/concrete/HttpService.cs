@@ -14,25 +14,33 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace DukeBox.DI.concrete;
 
 public class HttpService : IHttpService {
-    public HttpService(IDBService dbService, ISettingsService settingsService) {
-        DBService = dbService;
-        SettingsService = settingsService;
-    }
     private IDBService DBService { get; }
     private ISettingsService SettingsService { get; }
     private UtLog Logger = new UtLog("HTTP");
     private Regex RegRange = new Regex(@"bytes=(?<start>\d+)(?:-(?<end>\d+))?");
 
     #region Routing
+
+    private string DataPathOf(IMediaFile entry) {
+        if (entry.Converted) {
+            var path = DBService.GetConvertedFilePath(entry);
+            if (File.Exists(path)) {
+                return path;
+            }
+        }
+        return entry.Path;
+    }
 
     // Shared Routed Handler
     private IHttpResponse RequestItem(HttpRequest request, string? type) {
@@ -55,7 +63,7 @@ public class HttpService : IHttpService {
         if (entry.BooMediaType == "p") {
             // 画像ならNoRanged なレスポンスを返す
             Logger.Debug($"[{request.Id}] No-Ranged Request (photo).");
-            var stream = new FileStream(entry.FilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            var stream = new FileStream(DataPathOf(entry), FileMode.Open, FileAccess.Read, FileShare.Read);
             return StreamingHttpResponse.CreateForNoRanged(request, entry.ContentType, stream, entry.Size, () => stream.Dispose());
         }
 
@@ -63,7 +71,7 @@ public class HttpService : IHttpService {
         if (!request.Headers.TryGetValue("range", out var range)) {
             //Source?.StandardOutput($"BooServer: cmd=video({id})");
             Logger.Debug($"[{request.Id}] No-Ranged Request.");
-            var stream = new FileStream(entry.FilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            var stream = new FileStream(DataPathOf(entry), FileMode.Open, FileAccess.Read, FileShare.Read);
             return StreamingHttpResponse.CreateForRangedInitial(request, "video/mp4", stream, entry.Size, () => stream.Dispose());
         }
         else {
@@ -77,7 +85,7 @@ public class HttpService : IHttpService {
                 Logger.Error($"[{request.Id}] Hah? Start={start} End={end}");
             }
             //Logger.Debug($"Ranged Request. {start} - {end}");
-            var stream = new FileStream(entry.FilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            var stream = new FileStream(DataPathOf(entry), FileMode.Open, FileAccess.Read, FileShare.Read);
             return StreamingHttpResponse.CreateForRanged(request, "video/mp4", stream, start, end, entry.Size, () => stream.Dispose());
         }
     }
@@ -171,9 +179,9 @@ public class HttpService : IHttpService {
                     var photo = types?.Contains("p") ?? true;
                     var audio = types?.Contains("a") ?? false;
                     var date = Convert.ToInt64(p.GetValue("d")??"0");
-                    var list = DBService.MediaFileStore.List().Where((it) => {
+                    var list = DBService.MediaFileStore.Enumerable().Where((it) => {
                         // filter
-                        if(it.IsDeleted) return false;
+                        if(it.Deleted) return false;
                         if (!string.IsNullOrWhiteSpace(types)) {
                             switch(it.Type) {
                                 case "mp4":
@@ -235,8 +243,8 @@ public class HttpService : IHttpService {
                 process: (HttpRequest request) => {
                     //Source?.StandardOutput($"BooServer: cmd=check");
                     var date = Convert.ToInt64(QueryParser.Parse(request.Url).GetValue("date"));
-                    var list = DBService.MediaFileStore.List().Where((it) => {
-                        if(it.IsDeleted) return false;
+                    var list = DBService.MediaFileStore.Enumerable().Where((it) => {
+                        if(it.Deleted) return false;
                         return it.RegisteredDate> date;
                     }).Select((it) => {
                         return MediaFile2Dictionary(it);
@@ -408,25 +416,27 @@ public class HttpService : IHttpService {
 
     #region IHttpService
 
-    private readonly ReactivePropertySlim<bool> _running = new (false);
+    //private readonly ReactivePropertySlim<bool> _running = new (false);
     private readonly List<HttpServer> _servers = new();
+    private readonly BehaviorSubject<IReadOnlyList<HttpServer>> _serverList = new([]);
+    public IReadOnlyReactiveProperty<bool> Running { get; }
     private MdnsAdvertiser? _mdns = null;
 
-    public IReadOnlyReactiveProperty<bool> Running => _running;
 
     /// <summary>
     /// 旧シグネチャ。引数の <paramref name="port"/> は HTTP リスナーのポートとして扱う。
     /// HTTPS / mDNS 関連は <see cref="IUserSettingsService"/> から動的に読み出す。
     /// </summary>
     public bool Start() {
-        if (_running.Value) return false;
+        if (Running.Value) return false;
 
         var routes = Routes();
         bool startHttp = SettingsService.EnableHttp;
         bool startHttps = SettingsService.EnableSSL;
 
+        var anyRunning = false;
         if (startHttp) {
-            StartOne(routes, SettingsService.ServerPort, certificate: null, label: "HTTP");
+            anyRunning = StartOne(routes, SettingsService.ServerPort, certificate: null, label: "HTTP");
         }
 
         if (startHttps) {
@@ -452,14 +462,14 @@ public class HttpService : IHttpService {
                 Logger.Error(e, $"HTTPS: cannot load PFX ({SettingsService.PFXFilePath})");
             }
             if (cert != null) {
-                if (!StartOne(routes, SettingsService.SSLServerPort, certificate: cert, label: "HTTPS")) {
+                if (StartOne(routes, SettingsService.SSLServerPort, certificate: cert, label: "HTTPS")) {
+                    anyRunning = true;
+                }
+                else {
                     cert.Dispose();
                 }
             }
         }
-
-        bool anyRunning = _servers.Count > 0;
-        _running.Value = anyRunning;
 
         if (anyRunning) {
             StartMdns();
@@ -471,6 +481,7 @@ public class HttpService : IHttpService {
         var server = new HttpServer(routes, Logger, certificate);
         if (server.Start(port)) {
             _servers.Add(server);
+            _serverList.OnNext(_servers.ToList());
             Logger.Info($"{label} listener started on port {port}");
             return true;
         }
@@ -509,7 +520,7 @@ public class HttpService : IHttpService {
         }
     }
 
-    public void Stop() {
+    public async Task StopAsync() {
         if (_mdns != null) {
             try { _mdns.Dispose(); } catch (Exception e) { Logger.Error(e, "mDNS stop"); }
             _mdns = null;
@@ -517,10 +528,42 @@ public class HttpService : IHttpService {
         foreach (var s in _servers) {
             try { s.Stop(); } catch (Exception e) { Logger.Error(e, "Server stop"); }
         }
+
+        try {
+            // タイムアウト付きで、Running が false になるのを待つ。
+            await Running.FirstAsync(it => !it)
+                         .Timeout(TimeSpan.FromSeconds(3));
+        }
+        catch (TimeoutException) {
+            Logger.Warn("Some servers did not stop within 3 seconds.");
+        }
+
+        // try/catch を使わない書き方も魅力的だけど、素直にtry/catch した方がわかりやすい気がする。
+        //var stopped = await Running.FirstAsync(it => !it)
+        //    .Select(_ => true)  // Running が false になったら true を返す
+        //    .Timeout(TimeSpan.FromSeconds(3), Observable.Return(false)) // タイムアウトしたら false を返す
+        //    .FirstAsync();
+        //if (!stopped) {
+        //    Logger.Warn("Some servers did not stop within 3 seconds.");
+        //}
+
         _servers.Clear();
-        _running.Value = false;
+        _serverList.OnNext(_servers.ToList());
     }
 
+    public HttpService(IDBService dbService, ISettingsService settingsService) {
+        DBService = dbService;
+        SettingsService = settingsService;
+        Running = _serverList
+            .Select(list => list.Count == 0
+                ? Observable.Return(false)  // 空なら false
+                : Observable.CombineLatest(list.Select(s => s.Running))
+                            .Select(values => values.Any(v => v)))
+            .Switch()   // 新しい一覧が流れたら、古い購読を解除して切り替える
+            .DistinctUntilChanged()
+            .ToReadOnlyReactiveProperty()
+            ;
+    }
 
 
     #endregion

@@ -38,7 +38,7 @@ public class SourceDirectoryList : IMutableSourceDirectoryStore{
     }
     public ISourceDirectory? Add(string path_, bool recursive=true, long category=0) {
         var path = NormalizeDirPath(path_);
-        if (CheckConfliction(path) != ConflictType.None) {
+        if (CheckConfliction(path, recursive) != ConflictType.None) {
             logger.Debug($"Path '{path}' is already registered.");
             return null;
         }
@@ -65,11 +65,14 @@ public class SourceDirectoryList : IMutableSourceDirectoryStore{
     public ConflictType CheckConfliction(string path_, bool includeSubdirectories=true) {
         var path = NormalizeDirPath(path_);
 
-        if (_sourceDirectories.Any(it => it.Path.Equals(path, StringComparison.OrdinalIgnoreCase))) {
+        // EF Core は StringComparison 付きの比較を SQL 変換できないため、クライアント側で評価する
+        var entries = _sourceDirectories.AsNoTracking().ToList();
+
+        if (entries.Any(it => it.Path.Equals(path, StringComparison.OrdinalIgnoreCase))) {
             return ConflictType.Registered;
         }
         // pathが登録済みのディレクトリのサブディレクトリかどうかを確認する
-        foreach (var entry in _sourceDirectories.Where(it => it.Recursive)) {
+        foreach (var entry in entries.Where(it => it.Recursive)) {
             if (path.StartsWith(entry.Path, StringComparison.OrdinalIgnoreCase)) {
                 logger.Debug($"Path '{path}' is a subdirectory of registered source directory '{entry.Path}'");
                 return ConflictType.SubdirectoryOfRegistered;
@@ -78,7 +81,7 @@ public class SourceDirectoryList : IMutableSourceDirectoryStore{
 
         // includeSubdirectoriesがtrueの場合、登録済みのディレクトリがpathのサブディレクトリかどうかを確認する
         if (includeSubdirectories) {
-            foreach (var entry in _sourceDirectories) {
+            foreach (var entry in entries) {
                 if (entry.Path.StartsWith(path, StringComparison.OrdinalIgnoreCase)) {
                     logger.Debug($"Registered path '{entry.Path}' is a subdirectory of '{path}'");
                     return ConflictType.ParentDirectoryOfRegistered;

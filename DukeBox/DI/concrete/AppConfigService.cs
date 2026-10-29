@@ -40,6 +40,7 @@ internal class AppConfigService : IAppConfigService {
             }
         }
     }
+
     public string DBName => $"{AppName}.db";
     public string DBPath => Path.Combine(AppDataPath, DBName);
 

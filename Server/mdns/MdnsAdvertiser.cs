@@ -77,7 +77,10 @@ public class MdnsAdvertiser : IDisposable {
         // 初回広告 (RFC 6762 8.3 に倣い少しずらして 2 回送る)
         SendUnsolicitedAnnouncement();
         Task.Run(async () => {
-            try { await Task.Delay(800, _cts!.Token); SendUnsolicitedAnnouncement(); } catch { }
+            try { 
+                await Task.Delay(800, _cts!.Token); 
+                SendUnsolicitedAnnouncement(); } 
+            catch { }
         });
 
         // 周期再広告ループ

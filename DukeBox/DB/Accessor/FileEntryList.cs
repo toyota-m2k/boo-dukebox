@@ -1,11 +1,12 @@
-﻿using DukeBox.model;
+﻿using DukeBox.DI.contract;
+using DukeBox.model;
 using io.github.toyota32k.BooLib.Utils;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.UI.Xaml.Shapes;
 using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.IO;
 using System.Linq;
 using System.Reactive.Subjects;
@@ -97,30 +98,30 @@ public class FileEntryList : IMutableMediaFileStore {
         return _entries;
     }
 
-    public IEnumerable<IMediaFile> List() {
-        return _entries.Include(e=>e.CategoryRef);
+    public IEnumerable<IMediaFile> Enumerable(bool tracking = false) {
+        return _entries.Include(e => e.CategoryRef).Let(it => {
+            if (tracking) {
+                return it;
+            } else { 
+                return it.AsNoTracking();
+            }
+        });
     }
-    public IEnumerable<IMediaFile> List(Func<IMediaFile, bool> predicate) {
-        return List().Where(predicate);
-    }
-    public IEnumerable<T> ListAs<T>(Func<IMediaFile, bool> predicate, Func<IMediaFile, T> select) {
-        return List(predicate).Select(select);
-    }
-    public IEnumerable<T> ListAs<T>(Func<IMediaFile, T?> select) where T : class {
-        return List().Select(select).Where(it => it is not null).OfType<T>();
+    public IList<IMediaFile> List(bool tracking = false) {
+        return Enumerable(tracking).ToList();
     }
 
-    public IMediaFile AddOrUpdate(string path, string name, long size, string type, long duration = 0L, string copyPath="",
+    public IMediaFile AddOrUpdate(string path, string name, long size, string type, long duration = 0L, bool converted = false,
         int rating = 0, int mark = 0, string label = "", long category = 0, string chapters = "") {
         var entry = GetByPath(path);
         if (entry != null) {
-            return Update(entry, name, size, duration, copyPath, rating, mark, label, category, chapters);
+            return Update(entry, name, size, duration, converted, rating, mark, label, category, chapters);
         } else {
-            return Add(path, name, size, type, duration, copyPath, rating, mark, label, category, chapters);
+            return Add(path, name, size, type, duration, converted, rating, mark, label, category, chapters);
         }
     }
     
-    public IMediaFile Add(string path, string name, long size, string type, long duration=0L, string copyPath="",
+    public IMediaFile Add(string path, string name, long size, string type, long duration=0L, bool converted=false,
         int rating=0, int mark=0, string label="", long category=0, string chapters="") {
         if(GetByPath(path) != null) {
             throw new ArgumentException($"already exists: {path}");
@@ -146,7 +147,7 @@ public class FileEntryList : IMutableMediaFileStore {
                 Size = size, 
                 Duration=duration, 
                 Type = type,
-                CopyPath = copyPath,
+                Converted = converted,
                 CreationDate = creation,
                 LastModifiedDate = lastModified,
                 RegisteredDate = now,
@@ -171,7 +172,7 @@ public class FileEntryList : IMutableMediaFileStore {
         }
     }
 
-    public IMediaFile Update(IMediaFile entry, string? name=null, long? size=null, long? duration=null, string? copyPath=null,
+    public IMediaFile Update(IMediaFile entry, string? name=null, long? size=null, long? duration=null, bool? converted=null,
         int? rating = null, int? mark = null, string? label = null, long? category = null, string? chapters = null) {
         var info = new FileInfo(entry.Path);
         if (!info.Exists) {
@@ -181,7 +182,7 @@ public class FileEntryList : IMutableMediaFileStore {
 
         FileEntry modified;
         lock (_connector) {
-            modified = MediaFile2FileEntry(entry.Modify(name, size, duration, copyPath, lastModified, isDeleted: null, rating, mark, label, category, chapters));
+            modified = MediaFile2FileEntry(entry.Modify(name, size, duration, converted, lastModified, isDeleted: null, rating, mark, label, category, chapters));
 
             var tracked = _entries.Local.FirstOrDefault(it => it.Id == modified.Id);
             if (tracked != null) {
@@ -201,23 +202,27 @@ public class FileEntryList : IMutableMediaFileStore {
         return modified;
     }
 
-    IMediaFile IMutableMediaFileStore.Update(IMediaFile entry, string? name, long? size, long? duration, string? copyPath, int? rating, int? mark, string? label, long? category, string? chapters) {
+    IMediaFile IMutableMediaFileStore.Update(IMediaFile entry, string? name, long? size, long? duration, bool? converted, int? rating, int? mark, string? label, long? category, string? chapters) {
         if (entry is FileEntry fileEntry) {
-            return Update(fileEntry, name, size, duration, copyPath, rating, mark, label, category, chapters);
+            return Update(fileEntry, name, size, duration, converted, rating, mark, label, category, chapters);
         }
         else {
             throw new ArgumentException("entry must be FileEntry");
         }
     }
 
-    public void Remove(IMediaFile entry) {
-        lock (_connector) {
-            _entries.Remove(MediaFile2FileEntry(entry));
-        }
-        _changeInfoQueue.Enqueue(DataChangeInfo.Remove(entry));
+    public static string GetConvertedFilePath(string convertedSourcePath, IMediaFile entry) {
+        return Path.Combine(convertedSourcePath, $"{entry.Id}");
     }
 
-    public void Remove(IEnumerable<IMediaFile> entries) {
+    //public void Remove(IMediaFile entry) {
+    //    lock (_connector) {
+    //        _entries.Remove(MediaFile2FileEntry(entry));
+    //    }
+    //    _changeInfoQueue.Enqueue(DataChangeInfo.Remove(entry));
+    //}
+
+    public void Remove(IEnumerable<IMediaFile> entries, string convertedSourcePath) {
         var list = entries.Select(MediaFile2FileEntry).ToList();
         if (list.Count == 0) {
             return;
@@ -226,11 +231,11 @@ public class FileEntryList : IMutableMediaFileStore {
             _entries.RemoveRange(list);
         }
         foreach (var entry in list) {
-            var copy = entry.CopyPath;
-            if (!string.IsNullOrEmpty(copy) && File.Exists(copy)) {
-                // コピー先のファイルが存在する場合は削除する
-                FileUtil.SafeDelete(copy);
-            }
+            //if (entry.Converted) {    ゴミがあるかもしれないので、Convertedフラグに関係なく削除を試行する。
+            // コンバートされたファイルが存在する場合は削除する
+            var converted = GetConvertedFilePath(convertedSourcePath, entry);
+            FileUtil.SafeDelete(converted);
+            //}
             _changeInfoQueue.Enqueue(DataChangeInfo.Remove(entry));
         }
     }

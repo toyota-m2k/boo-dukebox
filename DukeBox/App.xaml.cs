@@ -1,6 +1,11 @@
 ﻿using DukeBox.DI.concrete;
 using DukeBox.DI.contract;
+using DukeBox.view;
+using DukeBox.view.viewmodel;
+using io.github.toyota32k.BooLib.Utils;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -27,7 +32,8 @@ namespace DukeBox {
     /// Provides application-specific behavior to supplement the default Application class.
     /// </summary>
     public partial class App : Application {
-        private Window? _window;
+        private MainWindow? _window;
+        public static UtLog Logger = new UtLog("DukeBox");
 
         private ServiceProvider Services { get; }
 
@@ -38,6 +44,8 @@ namespace DukeBox {
             }
             return service;
         }
+
+        public static MainWindow MainWindow => (App.Current as App)!._window!;
 
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
@@ -53,9 +61,21 @@ namespace DukeBox {
                 .AddSingleton<IAppConfigService, AppConfigService>()
                 .AddSingleton<ISettingsService, SettingsService>()
                 .AddSingleton<IDBService, DBService>()
+                .AddSingleton<IListingFileService, ListingFileService>()
+                .AddSingleton<IHttpService, HttpService>()
+                .AddSingleton<IMainThreadService, MainThreadService>()
+                .AddSingleton<IPageService, PageService>()
+                .AddSingleton<IDialogService, DialogService>()
+                .AddSingleton<MainWindowViewModel>()
+                .AddSingleton<EntryPageViewModel>()
                 ;
 
             Services = services.BuildServiceProvider();
+            UnhandledException += OnUnhandledException;
+        }
+
+        private void OnUnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e) {
+            Logger.Error(e.Exception, "Unhandled Exception");
         }
 
         /// <summary>
@@ -63,9 +83,35 @@ namespace DukeBox {
         /// </summary>
         /// <param name="args">Details about the launch request and process.</param>
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args) {
-            var db = GetService<IDBService>();
             _window = new MainWindow();
             _window.Activate();
+            _window.AppWindow.Closing += AppWindow_Closing;
+            GetService<IPageService>().Startup(_window.RootFrame);
         }
+
+        private bool closeConfirmed = false;
+        private async void ConfirmClose(Window window) {
+            var r = await MessageBoxBuilder.Create(window)
+                .SetMessage("Are you sure you want to exit?")
+                .AddButton("Yes", id: true)
+                .AddButton("No", id: false)
+                .ShowAsync() as bool?;
+            if (r == true) {
+                closeConfirmed = true;
+                window.Close();
+            }
+        }
+
+        private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args) {
+            if (_window == null) return;
+            var appConfigService = GetService<IAppConfigService>();
+            if (appConfigService.NeedsConfirmOnExit && !closeConfirmed) {
+                args.Cancel = true;
+                ConfirmClose(_window);
+            }
+            GetService<IHttpService>().Stop();
+        }
+
+
     }
 }

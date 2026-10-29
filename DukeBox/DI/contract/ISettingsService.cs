@@ -5,6 +5,7 @@ using System.Text;
 namespace DukeBox.DI.contract; 
 public interface ISettingsService {
     // Media Sources
+    TimeSpan ScanInterval { get; set; }
 
     // FFMpeg
     bool UseFFMpeg { get; set; }
@@ -13,7 +14,6 @@ public interface ISettingsService {
 
     // Converted Source
     string ConvertedSourcePath { get; set; }
-
     // Server
     bool EnableHttp { get; set; }
     string ServerName { get; set; }
@@ -23,5 +23,4 @@ public interface ISettingsService {
     bool EnableMDNSAdvertising { get; set; }
     string PFXFilePath { get; set; }
     string PFXPassword { get; set; }
-
 }
