@@ -22,10 +22,9 @@ public interface IDBService {
     IMediaFileStore MediaFileStore { get; }
     bool EditMediaFileStore(Func<IMutableMediaFileStore, bool> fn);
     Task<bool> EditMediaFileStore(Func<IMutableMediaFileStore, Task<bool>> fn);
-    
+
     // KV Store
-    IKVStore KVStore { get; }
-    bool EditKVStore(Func<IMutableKVStore, bool> fn);
+    IMutableKVStore KVStore { get; }
 
     // Category Store
     ICategoryStore CategoryStore { get; }

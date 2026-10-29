@@ -16,7 +16,7 @@ internal static class MdnsCommon {
     // 全 BooTube プロトコル互換アプリで共用するサービスタイプ。
     public const string ServiceType = "_booapi._tcp";
     // このアプリ識別子 (TXT app=...)。
-    public const string AppId = "SA";
+    public const string AppId = "Dukebox";
     public const int MdnsPort = 5353;
     public static readonly IPAddress MulticastV4 = IPAddress.Parse("224.0.0.251");
 

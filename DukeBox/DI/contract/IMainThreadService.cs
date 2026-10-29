@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace DukeBox.DI.contract;
 
-internal interface IMainThreadService {
+public interface IMainThreadService {
     void Run(Action f);
     T Run<T>(Func<T> f);
     public void Run(Task t);

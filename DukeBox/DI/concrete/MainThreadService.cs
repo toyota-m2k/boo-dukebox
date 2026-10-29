@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DukeBox.DI.concrete;
 
-internal class MainThreadService : IMainThreadService {
+public class MainThreadService : IMainThreadService {
     private TaskScheduler _taskScheduler;
     private int _threadId;
     public MainThreadService() {

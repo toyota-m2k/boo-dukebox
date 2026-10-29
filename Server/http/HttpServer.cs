@@ -117,7 +117,7 @@ public class HttpServer {
         return true;
     }
 
-    public void Stop() {
+    private void Stop() {
         lock (this) {
             if (!Alive) {
                 return;
@@ -130,7 +130,13 @@ public class HttpServer {
 
     public async Task StopAsync() {
         Stop();
-        await _running.FirstAsync(it=>!it);
+        try {
+            await _running.FirstAsync(it => !it)
+                .Timeout(TimeSpan.FromSeconds(3));
+        }
+        catch (Exception e) {
+            Logger.Error(e, "StopAsync failed");
+        }
     }
     #endregion
 

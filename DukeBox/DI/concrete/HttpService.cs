@@ -515,36 +515,44 @@ public class HttpService : IHttpService {
         }
         catch (Exception e) {
             Logger.Error(e, "mDNS advertise failed");
-            _mdns.Dispose();
+            _ = _mdns.StopAsync();
             _mdns = null;
         }
     }
 
     public async Task StopAsync() {
         if (_mdns != null) {
-            try { _mdns.Dispose(); } catch (Exception e) { Logger.Error(e, "mDNS stop"); }
+            try { 
+                await _mdns.StopAsync(); 
+            } catch (Exception e) { 
+                Logger.Error(e, "mDNS stop"); 
+            }
             _mdns = null;
         }
         foreach (var s in _servers) {
-            try { s.Stop(); } catch (Exception e) { Logger.Error(e, "Server stop"); }
+            try { 
+                await s.StopAsync(); 
+            } catch (Exception e) { 
+                Logger.Error(e, "Server stop"); 
+            }
         }
 
         try {
             // タイムアウト付きで、Running が false になるのを待つ。
             await Running.FirstAsync(it => !it)
-                         .Timeout(TimeSpan.FromSeconds(3));
+                         .Timeout(TimeSpan.FromSeconds(5));
         }
         catch (TimeoutException) {
-            Logger.Warn("Some servers did not stop within 3 seconds.");
+            Logger.Warn("Some servers did not stop within 5 seconds.");
         }
 
         // try/catch を使わない書き方も魅力的だけど、素直にtry/catch した方がわかりやすい気がする。
         //var stopped = await Running.FirstAsync(it => !it)
         //    .Select(_ => true)  // Running が false になったら true を返す
-        //    .Timeout(TimeSpan.FromSeconds(3), Observable.Return(false)) // タイムアウトしたら false を返す
+        //    .Timeout(TimeSpan.FromSeconds(5), Observable.Return(false)) // タイムアウトしたら false を返す
         //    .FirstAsync();
         //if (!stopped) {
-        //    Logger.Warn("Some servers did not stop within 3 seconds.");
+        //    Logger.Warn("Some servers did not stop within 5 seconds.");
         //}
 
         _servers.Clear();

@@ -16,4 +16,6 @@ public interface IMutableKVStore : IKVStore {
     void SetString(string key, string value);
     void Delete(string key);
     new string? this[string key] { get; set; }
+
+    void SaveChanges();
 }

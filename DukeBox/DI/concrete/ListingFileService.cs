@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -71,7 +72,7 @@ public class ListingFileService : IListingFileService {
     }
 
     private async Task CancelScan(bool keepLock=true) {
-        StopScan();
+        await StopScanAsync();
         cancelling = true;
         Logger.Warn("Cancelling scan...");
         await lockSemaphoe.WaitAsync();
@@ -118,6 +119,7 @@ public class ListingFileService : IListingFileService {
     }
 
     private void OnMediaFileStoreChanged(DataChangeInfo change) {
+
         switch (change.Type) {
             case DataChangeInfo.Change.Add:
                 MediaFiles.Add(change.Item);
@@ -158,8 +160,14 @@ public class ListingFileService : IListingFileService {
         });
     }
 
-    public void StopScan() {
+    public async Task StopScanAsync() {
         cancellationTokenSource?.Cancel();
         cancellationTokenSource = null;
+        try {
+            await IsRunning.FirstAsync(it => !it).Timeout(TimeSpan.FromSeconds(30));
+        }
+        catch (TimeoutException) {
+            Logger.Warn("StopScanAsync: Timeout waiting for scan to stop.");
+        }
     }
 }

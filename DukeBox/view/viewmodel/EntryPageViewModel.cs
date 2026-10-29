@@ -3,6 +3,7 @@ using DukeBox.DI.contract;
 using DukeBox.model;
 using io.github.toyota32k.BooLib.Utils;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml.Controls;
 using Reactive.Bindings;
 using System;
@@ -16,6 +17,8 @@ using System.Threading.Tasks;
 namespace DukeBox.view.viewmodel;
 
 public class EntryPageViewModel {
+    public UtLog Logger = new UtLog("EntryPage");
+
     #region Media Source / Scanner
     public ReactiveProperty<long> ScanIntervalMs { get; } = new(0);
 
@@ -28,6 +31,7 @@ public class EntryPageViewModel {
     public ReactiveCommand RemoveChannelCommand { get; } = new();
     public ReactiveCommand AddPathCommand { get; } = new();
     public ReactiveCommand RemovePathCommand { get; } = new();
+
 
     #endregion
 
@@ -63,43 +67,60 @@ public class EntryPageViewModel {
     #region Status
 
     public ReactiveProperty<bool> Busy { get; } = new(false);
-    public Task WithBusy(Func<Task> action) {
+    public ReactiveProperty<string> BusyMessage { get; } = new("");
+    public ReadOnlyReactiveProperty<bool> IsBusyMessageVisible { get; }
+    public Task WithBusy(string message, Func<Task> action) {
+        var orgBusy = Busy.Value;
+        var orgMessage = BusyMessage.Value;
+        BusyMessage.Value = message;
         Busy.Value = true;
         try {
             return action();
         }
         finally {
-            Busy.Value = false;
+            Busy.Value = orgBusy;
+            BusyMessage.Value = orgMessage;
         }
     }
-    public Task<T> WithBusy<T>(Func<Task<T>> action) {
+    public Task<T> WithBusy<T>(string message, Func<Task<T>> action) {
+        var orgBusy = Busy.Value;
+        var orgMessage = BusyMessage.Value;
+        BusyMessage.Value = message;
         Busy.Value = true;
         try {
             return action();
         }
         finally {
-            Busy.Value = false;
+            Busy.Value = orgBusy;
+            BusyMessage.Value = orgMessage;
         }
     }
+
+    public ReactiveCommand StartServerCommand { get; } = new();
 
     #endregion
 
     private ISettingsService _settingsService;
     private IDBService _dBService;
     private IListingFileService _listingFileService;
+    private IHttpService _httpService;
     private IDialogService _dialogService;
+    private IPageService _pageService;
 
 
     public EntryPageViewModel(
         ISettingsService settingsService, 
         IDBService dBService,
         IListingFileService listingFileService,
-        IDialogService dialogService) {
+        IHttpService httpService,
+        IDialogService dialogService,
+        IPageService pageService) {
         _settingsService = settingsService;
         _dBService = dBService;
         _listingFileService = listingFileService;
+        _httpService = httpService;
         _dialogService = dialogService;
-
+        _pageService = pageService;
 
         // Channels
         Channels.Clear();
@@ -138,6 +159,10 @@ public class EntryPageViewModel {
 
         BrowsePfxFileCommand.Subscribe(BrowsePfxFile);
         GeneratePfxFileCommand.Subscribe(GeneratePfxFile);
+
+        // Status
+        IsBusyMessageVisible = BusyMessage.Select(it => !string.IsNullOrWhiteSpace(it)).ToReadOnlyReactiveProperty();
+        StartServerCommand.Subscribe(StartServer);
     }
 
     private void OnChannelChanged(ICategory? newChannel) {
@@ -151,6 +176,15 @@ public class EntryPageViewModel {
     }
 
     private bool _dirty = false;
+
+    private bool IsSameCategory(ICategory? c1, ICategory? c2) {
+        return IsSameCategory(c1?.Id, c2?.Id);
+    }
+    private bool IsSameCategory(long? c1, long? c2) {
+        var id1 = c1 ?? 0;
+        var id2 = c2 ?? 0;
+        return id1 == id2;
+    }
 
     private async void AddChannel() {
         var name = await _dialogService.ShowInputText("Add Channel", "Enter channel name:");
@@ -166,7 +200,7 @@ public class EntryPageViewModel {
             return;
         }
 
-        await WithBusy(async () => {
+        await WithBusy("Adding channel...", async () => {
             await _dBService.EditCategoryStore(async store => {
                 var newCategory = await Task.Run(() => store.Add(name));
                 if (newCategory == null) {
@@ -195,7 +229,7 @@ public class EntryPageViewModel {
             $"Are you sure you want to remove channel '{channel.Name}'?\r\n" +
             $"This will also remove all paths and media files in this channel.")) {
 
-            await WithBusy(async () => {
+            await WithBusy("Removing channel...", async () => {
                 await Task.Run(async ()=>_dBService.RemoveCategory((CategoryEntry)channel));
                 Channels.Remove(channel);
                 SelectedChannel.Value = Channels[0];
@@ -205,7 +239,7 @@ public class EntryPageViewModel {
     }
 
     private async Task<bool> CheckPathConfliction(string path, bool recursive) {
-        return await WithBusy(async () => {
+        return await WithBusy("Checking path confliction...", async () => {
             var conflict = _dBService.SourceDirectoryStore.CheckConfliction(path, recursive);
             if (conflict != ConflictType.None) {
                 string message;
@@ -264,7 +298,7 @@ public class EntryPageViewModel {
             return;
         }
 
-        await WithBusy(async () => {
+        await WithBusy("Adding source folder...", async () => {
             await _dBService.EditSourceDirectoryStore(async store => {
                 var newEntry = await Task.Run(()=>store.Add(path, recursive, currentChannel.Id));
                 if (newEntry == null) {
@@ -282,7 +316,9 @@ public class EntryPageViewModel {
         if (pathEntry == null) {
             return;
         }
-        if (pathEntry.Category != SelectedChannel.Value?.Id) {
+        
+        if (!IsSameCategory(pathEntry.Category, SelectedChannel.Value?.Id)) {
+            Logger.Error("selected path is not in current category.");
             return;
         }
         var index = PathInChannel.IndexOf(pathEntry);
@@ -290,7 +326,7 @@ public class EntryPageViewModel {
             "Remove Source Folder",
             $"Are you sure you want to remove source folder '{pathEntry.Path}'?\r\n" +
             $"This will also remove all media files in this folder from the database.")) {
-            await WithBusy(async () => {
+            await WithBusy("Removing source folder...", async () => {
                 await Task.Run(async () => _dBService.RemoveSourceDirectory(pathEntry));
                 PathInChannel.Remove(pathEntry);
                 if (PathInChannel.Count > 0) {
@@ -335,10 +371,12 @@ public class EntryPageViewModel {
     }
 
     public async Task Prepare() {
-        // スキャナを停止する。
-        _listingFileService.StopScan();
-        // スキャナが停止するまで待つ。
-        await _listingFileService.IsRunning.FirstAsync(it => !it);
+        await WithBusy("Stopping Servers...", async () => {
+            // サーバーを停止する。
+            await _httpService.StopAsync();
+            // スキャナを停止する。
+            await _listingFileService.StopScanAsync();
+        });
     }
 
     /**
@@ -346,7 +384,7 @@ public class EntryPageViewModel {
      * 設定が変更されていた場合、スキャナの更新も行う。
      * ServerPageを表示（＝サーバーを起動）する前に実行する。
      */
-    public async Task Complete() {
+    private async Task<bool> SaveAndCheck() {
         _settingsService.ScanInterval = TimeSpan.FromMilliseconds(ScanIntervalMs.Value);
         _settingsService.UseFFMpeg = UseFFMpeg.Value;
         _settingsService.FFMpegPath = FFMpegPath.Value;
@@ -360,9 +398,30 @@ public class EntryPageViewModel {
         _settingsService.EnableMDNSAdvertising = EnableMDNSAdvertising.Value;
         _settingsService.PFXFilePath = PFXFilePath.Value;
         _settingsService.PFXPassword = PFXPassword.Value;
+        _settingsService.Save();
+
         if (_dirty) {
-            await _listingFileService.UpdateScanners();
+            await WithBusy("Updating Scanners...", async () => {
+                await _listingFileService.UpdateScanners();
+            });
             _dirty = false;
         }
+        if (!EnableHttp.Value||!EnableSSL.Value) {
+            await _dialogService.ShowMessage("Server", "HTTP server is not enabled.");
+            return false;
+        }
+        return true;
+    }
+
+    private async void StartServer() {
+        await WithBusy("Checking settings...", async () => {
+            if (!await SaveAndCheck()) {
+                return;
+            }
+            _listingFileService.StartScan();
+
+            _httpService.Start();
+            _pageService.GoToServerPage();
+        });
     }
 }

@@ -23,4 +23,6 @@ public interface ISettingsService {
     bool EnableMDNSAdvertising { get; set; }
     string PFXFilePath { get; set; }
     string PFXPassword { get; set; }
+
+    void Save();
 }

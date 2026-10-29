@@ -54,7 +54,6 @@ public class KVList: IMutableKVStore {
             var e = _kvs.FirstOrDefault(it => it.Key == key);
             if (e != null) {
                 e.Value = value;
-                _kvs.Update(e);
             }
             else {
                 _kvs.Add(new KV() {
@@ -62,6 +61,12 @@ public class KVList: IMutableKVStore {
                     Value = value
                 });
             }
+        }
+    }
+
+    public void SaveChanges() {
+        lock (_connector) {
+            _connector.SaveChanges();
         }
     }
 }

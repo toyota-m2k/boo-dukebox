@@ -13,25 +13,26 @@ using System.Threading.Tasks;
 namespace DukeBox.DI.concrete; 
 public class DBService : IDBService {
     private readonly IAppConfigService ConfigService;
+    private readonly IMainThreadService MainThreadService;
     private DBConnector Connector;
     private IMutableMediaFileStore MutableMediaFileStore;
-    private IMutableKVStore MutableKVStore;
+    public IMutableKVStore KVStore { get; }
     private IMutableCategoryStore MutableCategoryStore;
     private readonly SemaphoreSlim _dbGate = new(1, 1);
 
     public IMediaFileStore MediaFileStore => MutableMediaFileStore;
-    public IKVStore KVStore => MutableKVStore;
     public ICategoryStore CategoryStore => MutableCategoryStore;
     public IMutableSourceDirectoryStore MutableSourceDirectoryStore;
     public ISourceDirectoryStore SourceDirectoryStore => MutableSourceDirectoryStore;
     public string ConvertedSourcePath { get; set; } = string.Empty;
     private string ActConvertedSourcePath => string.IsNullOrEmpty(ConvertedSourcePath) ? Path.Combine(ConfigService.AppDataPath, "Conv") : ConvertedSourcePath;
 
-    public DBService(IAppConfigService configService) {
+    public DBService(IAppConfigService configService, IMainThreadService mainThreadService) {
         this.ConfigService = configService;
+        this.MainThreadService = mainThreadService;
         Connector = new DBConnector(ConfigService.DBPath);
         MutableMediaFileStore = new FileEntryList(Connector);
-        MutableKVStore = new KVList(Connector);
+        KVStore = new KVList(Connector);
         MutableCategoryStore = new CategoryList(Connector);
         MutableSourceDirectoryStore = new SourceDirectoryList(Connector);
     }
@@ -53,7 +54,7 @@ public class DBService : IDBService {
         finally {
             _dbGate.Release();
             if (result) {
-                MutableMediaFileStore.ChangeEventSource.Submit();
+                MainThreadService.Run(MutableMediaFileStore.ChangeEventSource.Submit);
             }
         }
     }
@@ -75,29 +76,29 @@ public class DBService : IDBService {
         finally {
             _dbGate.Release();
             if (result) {
-                MutableMediaFileStore.ChangeEventSource.Submit();
+                MainThreadService.Run(MutableMediaFileStore.ChangeEventSource.Submit);
             }
         }
     }
 
-    public bool EditKVStore(Func<IMutableKVStore, bool> fn) {
-        bool result = false;
-        _dbGate.Wait();
-        try {
-            try {
-                result = fn(MutableKVStore);
-                return result;
-            }
-            finally {
-                if (result) {
-                    Connector.SaveChanges();
-                }
-            }
-        }
-        finally {
-            _dbGate.Release();
-        }
-    }
+    //public bool EditKVStore(Func<IMutableKVStore, bool> fn) {
+    //    bool result = false;
+    //    _dbGate.Wait();
+    //    try {
+    //        try {
+    //            result = fn(MutableKVStore);
+    //            return result;
+    //        }
+    //        finally {
+    //            if (result) {
+    //                Connector.SaveChanges();
+    //            }
+    //        }
+    //    }
+    //    finally {
+    //        _dbGate.Release();
+    //    }
+    //}
 
 
     public bool EditCategoryStore(Func<IMutableCategoryStore, bool> fn) {

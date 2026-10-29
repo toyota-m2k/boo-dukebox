@@ -9,112 +9,126 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <StackPanel Orientation="Vertical">
-        <TextBlock Text="Media Sources"/>
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal">
-                <TextBlock Text="Channel" VerticalAlignment="Center"/>
-                <Button Background="Blue" Command="{x:Bind ViewModel.AddChannelCommand}" Padding="2">
-                    <Viewbox Width="20" Height="20">
-                        <PathIcon Foreground="White" Width="24" Height="24" Data="M 19 13H 13V 19H 11V 13H 5V 11H 11V 5H 13V 11H 19V 13Z"/>
-                    </Viewbox>
-                </Button>
-                <Button Background="Blue" Command="{x:Bind ViewModel.RemoveChannelCommand}" Padding="2">
-                    <Viewbox Width="20" Height="20">
-                        <PathIcon Foreground="White" Width="24" Height="24" Data="M 19 13H 5V 11H 19V 13Z"/>
-                    </Viewbox>
-                </Button>
-            </StackPanel>
-            <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal">
-                <TextBlock Text="Folder"/>
-                <Button Background="Blue" Command="{x:Bind ViewModel.AddPathCommand}" Padding="2">
-                    <Viewbox Width="20" Height="20">
-                        <PathIcon Foreground="White" Width="24" Height="24" Data="M 19 13H 13V 19H 11V 13H 5V 11H 11V 5H 13V 11H 19V 13Z"/>
-                    </Viewbox>
-                </Button>
-                <Button Background="Blue" Command="{x:Bind ViewModel.RemovePathCommand}" Padding="2">
-                    <Viewbox Width="20" Height="20">
-                        <PathIcon Foreground="White" Width="24" Height="24" Data="M 19 13H 5V 11H 19V 13Z"/>
-                    </Viewbox>
-                </Button>
-            </StackPanel>
-            <ListView x:Name="Channels" Grid.Row="1" Grid.Column="0" Height="200" Width="200"
-                      SelectionMode="Single"
-                      ItemsSource="{x:Bind ViewModel.Channels}"
-                      SelectedItem="{x:Bind ViewModel.SelectedChannel.Value, Mode=TwoWay}">
-                <ListView.ItemTemplate>
-                    <DataTemplate x:DataType="model:ICategory">
-                        <TextBlock Text="{x:Bind Name}"/>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
-            <ListView x:Name="Folders" Grid.Row="1" Grid.Column="1" Height="200" HorizontalAlignment="Stretch"
-                      SelectionMode="Single"
-                      ItemsSource="{x:Bind ViewModel.PathInChannel}"
-                      SelectedItem="{x:Bind ViewModel.SelectedPath.Value, Mode=TwoWay}">
-                <ListView.ItemTemplate>
-                    <DataTemplate x:DataType="model:ISourceDirectory">
-                        <Grid ColumnSpacing="8">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="16"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Viewbox Grid.Column="0" Width="16" Height="16">
-                                <PathIcon 
-                                    Foreground="Blue" 
-                                        Data="M 22 4A 2,2,0,0,1,24,6V 16A 2,2,0,0,1,22,18H 6A 2,2,0,0,1,4,16V 4A 2,2,0,0,1,6,2H 12L 14 4H 22M 2 6V 20H 20V 22H 2A 2,2,0,0,1,0,20V 11H 0V 6H 2M 6 6V 16H 22V 6H 6Z"
-                                        Visibility="{x:Bind Recursive}"
-                                        ToolTipService.ToolTip="Recursive"/>
-                            </Viewbox>
-                            <TextBlock Grid.Column="1" Text="{x:Bind Path}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                        </Grid>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
-        </Grid>
+    <Grid>
+        <StackPanel Orientation="Vertical">
+            <TextBlock Text="Media Sources"/>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal">
+                    <TextBlock Text="Channel" VerticalAlignment="Center"/>
+                    <Button Background="Blue" Command="{x:Bind ViewModel.AddChannelCommand}" Padding="2">
+                        <Viewbox Width="20" Height="20">
+                            <PathIcon Foreground="White" Width="24" Height="24" Data="M 19 13H 13V 19H 11V 13H 5V 11H 11V 5H 13V 11H 19V 13Z"/>
+                        </Viewbox>
+                    </Button>
+                    <Button Background="Blue" Command="{x:Bind ViewModel.RemoveChannelCommand}" Padding="2">
+                        <Viewbox Width="20" Height="20">
+                            <PathIcon Foreground="White" Width="24" Height="24" Data="M 19 13H 5V 11H 19V 13Z"/>
+                        </Viewbox>
+                    </Button>
+                </StackPanel>
+                <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal">
+                    <TextBlock Text="Folder"/>
+                    <Button Background="Blue" Command="{x:Bind ViewModel.AddPathCommand}" Padding="2">
+                        <Viewbox Width="20" Height="20">
+                            <PathIcon Foreground="White" Width="24" Height="24" Data="M 19 13H 13V 19H 11V 13H 5V 11H 11V 5H 13V 11H 19V 13Z"/>
+                        </Viewbox>
+                    </Button>
+                    <Button Background="Blue" Command="{x:Bind ViewModel.RemovePathCommand}" Padding="2">
+                        <Viewbox Width="20" Height="20">
+                            <PathIcon Foreground="White" Width="24" Height="24" Data="M 19 13H 5V 11H 19V 13Z"/>
+                        </Viewbox>
+                    </Button>
+                </StackPanel>
+                <ListView x:Name="Channels" Grid.Row="1" Grid.Column="0" Height="200" Width="200"
+                          SelectionMode="Single"
+                          ItemsSource="{x:Bind ViewModel.Channels}"
+                          SelectedItem="{x:Bind ViewModel.SelectedChannel.Value, Mode=TwoWay}">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="model:ICategory">
+                            <TextBlock Text="{x:Bind Name}"/>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+                <ListView x:Name="Folders" Grid.Row="1" Grid.Column="1" Height="200" HorizontalAlignment="Stretch"
+                          SelectionMode="Single"
+                          ItemsSource="{x:Bind ViewModel.PathInChannel}"
+                          SelectedItem="{x:Bind ViewModel.SelectedPath.Value, Mode=TwoWay}">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="model:ISourceDirectory">
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="16"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Viewbox Grid.Column="0" Width="16" Height="16">
+                                    <PathIcon 
+                                        Foreground="Blue" 
+                                            Data="M 22 4A 2,2,0,0,1,24,6V 16A 2,2,0,0,1,22,18H 6A 2,2,0,0,1,4,16V 4A 2,2,0,0,1,6,2H 12L 14 4H 22M 2 6V 20H 20V 22H 2A 2,2,0,0,1,0,20V 11H 0V 6H 2M 6 6V 16H 22V 6H 6Z"
+                                            Visibility="{x:Bind Recursive}"
+                                            ToolTipService.ToolTip="Recursive"/>
+                                </Viewbox>
+                                <TextBlock Grid.Column="1" Text="{x:Bind Path}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Grid>
 
-        <!-- HTTP Server -->
-        <TextBlock Text="HTTP Server"/>
-        <CheckBox Content="HTTP" IsChecked="{x:Bind ViewModel.EnableHttp.Value, Mode=TwoWay}"/>
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="5">
-            <TextBlock Text="Port" VerticalAlignment="Center"/>
-            <NumberBox Text="{x:Bind ViewModel.ServerPort.Value, Mode=TwoWay}" IsEnabled="{x:Bind ViewModel.EnableHttp.Value, Mode=OneWay}" Width="80" HorizontalAlignment="Left"/>
-        </StackPanel>
+            <!-- HTTP Server -->
+            <TextBlock Text="HTTP Server"/>
+            <CheckBox Content="HTTP" IsChecked="{x:Bind ViewModel.EnableHttp.Value, Mode=TwoWay}"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="5">
+                <TextBlock Text="Port" VerticalAlignment="Center"/>
+                <NumberBox Text="{x:Bind ViewModel.ServerPort.Value, Mode=TwoWay}" IsEnabled="{x:Bind ViewModel.EnableHttp.Value, Mode=OneWay}" Width="80" HorizontalAlignment="Left"/>
+            </StackPanel>
 
-        <CheckBox Content="HTTPS" IsChecked="{x:Bind ViewModel.EnableSSL.Value, Mode=TwoWay}"/>
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="5">
-            <TextBlock Text="Port" VerticalAlignment="Center"/>
-            <NumberBox Text="{x:Bind ViewModel.SSLServerPort.Value, Mode=TwoWay}" IsEnabled="{x:Bind ViewModel.EnableHttp.Value, Mode=OneWay}" Width="80" HorizontalAlignment="Left"/>
-        </StackPanel>
+            <CheckBox Content="HTTPS" IsChecked="{x:Bind ViewModel.EnableSSL.Value, Mode=TwoWay}"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="5">
+                <TextBlock Text="Port" VerticalAlignment="Center"/>
+                <NumberBox Text="{x:Bind ViewModel.SSLServerPort.Value, Mode=TwoWay}" IsEnabled="{x:Bind ViewModel.EnableHttp.Value, Mode=OneWay}" Width="80" HorizontalAlignment="Left"/>
+            </StackPanel>
         
-        <!-- mDNS   -->
-        <TextBlock Text="mDNS"/>
+            <!-- mDNS   -->
+            <TextBlock Text="mDNS"/>
 
-        <CheckBox Content="mDNS Advertise" IsChecked="{x:Bind ViewModel.EnableMDNSAdvertising.Value, Mode=TwoWay}"/>
+            <CheckBox Content="mDNS Advertise" IsChecked="{x:Bind ViewModel.EnableMDNSAdvertising.Value, Mode=TwoWay}"/>
             
-        <TextBlock Text="Server Name"/>
-        <TextBox Width="200"/>
+            <TextBlock Text="Server Name"/>
+            <TextBox Width="200"/>
         
-        <!-- SSL -->
-        <TextBlock Text="SSL"/>
+            <!-- SSL -->
+            <TextBlock Text="SSL"/>
   
-        <TextBlock Text="PFX File Path"/>
-        <StackPanel Orientation="Horizontal" Spacing="5">
-            <TextBox Text="{x:Bind ViewModel.PFXFilePath.Value, Mode=TwoWay}" Width="200"/>
-            <Button Content="…" Command="{x:Bind ViewModel.BrowsePfxFileCommand}"/>
-        </StackPanel>
+            <TextBlock Text="PFX File Path"/>
+            <StackPanel Orientation="Horizontal" Spacing="5">
+                <TextBox Text="{x:Bind ViewModel.PFXFilePath.Value, Mode=TwoWay}" Width="200"/>
+                <Button Content="…" Command="{x:Bind ViewModel.BrowsePfxFileCommand}"/>
+            </StackPanel>
         
-        <Button Content="Generate..." Command="{x:Bind ViewModel.GeneratePfxFileCommand}"/>
-        <TextBlock Text="PFX Password"/>
-        <PasswordBox Password="{x:Bind ViewModel.PFXPassword.Value, Mode=TwoWay}" Width="200"/>
+            <Button Content="Generate..." Command="{x:Bind ViewModel.GeneratePfxFileCommand}"/>
+            <TextBlock Text="PFX Password"/>
+            <PasswordBox Password="{x:Bind ViewModel.PFXPassword.Value, Mode=TwoWay}" Width="200"/>
 
-    </StackPanel>
+            <!-- Navigation -->
+            <Button Content="Start Server" Command="{x:Bind ViewModel.StartServerCommand}"/>
+        </StackPanel>
+        <Grid
+            Background="#C0FFFFFF"
+            Visibility="{x:Bind ViewModel.Busy.Value}"
+            >
+            <StackPanel Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10">
+                <ProgressRing/>
+                <TextBlock Text="Waiting..." Foreground="Gray" Visibility="{x:Bind ViewModel.IsBusyMessageVisible.Value}"/>
+            </StackPanel>
+
+        </Grid>
+    </Grid>
 </Page>

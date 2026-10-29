@@ -28,5 +28,5 @@ public interface IListingFileService {
     /**
      * 定期的なScanner実行を停止する。
      */
-    void StopScan();
+    Task StopScanAsync();
 }

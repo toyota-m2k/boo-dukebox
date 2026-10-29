@@ -19,10 +19,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.UI.Core;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -101,15 +103,30 @@ namespace DukeBox {
                 window.Close();
             }
         }
-
+        private bool serverStopping = false;
         private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args) {
             if (_window == null) return;
             var appConfigService = GetService<IAppConfigService>();
             if (appConfigService.NeedsConfirmOnExit && !closeConfirmed) {
                 args.Cancel = true;
                 ConfirmClose(_window);
+                return;
             }
-            GetService<IHttpService>().Stop();
+
+            // HTTPサーバー起動中なら停止してから終了
+            var httpService = GetService<IHttpService>();
+            if (!serverStopping && httpService.Running.Value) {
+                args.Cancel = true;
+                Task.Run(async () => {
+                    await httpService.StopAsync();
+                    await _window.Dispatcher.RunAsync(CoreDispatcherPriority.High, () => {
+                        _window.Close();
+                    });
+                    // StopAsyncがタイムアウトした場合、Running.Value が false にならないので、
+                    // チェックをスキップするためのフラグを立てて、再度 Close() を呼ぶ。
+                    serverStopping = true;
+                });
+            }
         }
 
 
