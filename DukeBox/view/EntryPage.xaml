@@ -51,8 +51,14 @@
                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
         </StackPanel>
 
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-            <StackPanel Padding="32,12,32,24" Spacing="16" MaxWidth="1000" HorizontalAlignment="Stretch">
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="1000*" MaxWidth="1064"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="1" Padding="32,12,32,24" Spacing="16">
 
                 <!-- Media Sources -->
                 <Border Style="{StaticResource CardStyle}">
@@ -201,6 +207,7 @@
                     </StackPanel>
                 </Border>
             </StackPanel>
+            </Grid>
         </ScrollViewer>
 
         <!-- Footer -->
