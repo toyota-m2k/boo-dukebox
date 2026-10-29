@@ -7,128 +7,230 @@
     xmlns:model="using:DukeBox.model"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d">
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Page.Resources>
+        <Style x:Key="CardStyle" TargetType="Border">
+            <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}"/>
+            <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="20,16"/>
+        </Style>
+        <Style x:Key="CardHeaderStyle" TargetType="TextBlock" BasedOn="{StaticResource SubtitleTextBlockStyle}">
+            <Setter Property="Margin" Value="0,0,0,12"/>
+        </Style>
+        <Style x:Key="IconButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Padding" Value="6"/>
+            <Setter Property="CornerRadius" Value="4"/>
+        </Style>
+        <Style x:Key="ListBorderStyle" TargetType="Border">
+            <Setter Property="Background" Value="{ThemeResource LayerFillColorDefaultBrush}"/>
+            <Setter Property="BorderBrush" Value="{ThemeResource ControlStrokeColorDefaultBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Height" Value="220"/>
+        </Style>
+    </Page.Resources>
 
     <Grid>
-        <StackPanel Orientation="Vertical">
-            <TextBlock Text="Media Sources"/>
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal">
-                    <TextBlock Text="Channel" VerticalAlignment="Center"/>
-                    <Button Background="Blue" Command="{x:Bind ViewModel.AddChannelCommand}" Padding="2">
-                        <Viewbox Width="20" Height="20">
-                            <PathIcon Foreground="White" Width="24" Height="24" Data="M 19 13H 13V 19H 11V 13H 5V 11H 11V 5H 13V 11H 19V 13Z"/>
-                        </Viewbox>
-                    </Button>
-                    <Button Background="Blue" Command="{x:Bind ViewModel.RemoveChannelCommand}" Padding="2">
-                        <Viewbox Width="20" Height="20">
-                            <PathIcon Foreground="White" Width="24" Height="24" Data="M 19 13H 5V 11H 19V 13Z"/>
-                        </Viewbox>
-                    </Button>
-                </StackPanel>
-                <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal">
-                    <TextBlock Text="Folder"/>
-                    <Button Background="Blue" Command="{x:Bind ViewModel.AddPathCommand}" Padding="2">
-                        <Viewbox Width="20" Height="20">
-                            <PathIcon Foreground="White" Width="24" Height="24" Data="M 19 13H 13V 19H 11V 13H 5V 11H 11V 5H 13V 11H 19V 13Z"/>
-                        </Viewbox>
-                    </Button>
-                    <Button Background="Blue" Command="{x:Bind ViewModel.RemovePathCommand}" Padding="2">
-                        <Viewbox Width="20" Height="20">
-                            <PathIcon Foreground="White" Width="24" Height="24" Data="M 19 13H 5V 11H 19V 13Z"/>
-                        </Viewbox>
-                    </Button>
-                </StackPanel>
-                <ListView x:Name="Channels" Grid.Row="1" Grid.Column="0" Height="200" Width="200"
-                          SelectionMode="Single"
-                          ItemsSource="{x:Bind ViewModel.Channels}"
-                          SelectedItem="{x:Bind ViewModel.SelectedChannel.Value, Mode=TwoWay}">
-                    <ListView.ItemTemplate>
-                        <DataTemplate x:DataType="model:ICategory">
-                            <TextBlock Text="{x:Bind Name}"/>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
-                <ListView x:Name="Folders" Grid.Row="1" Grid.Column="1" Height="200" HorizontalAlignment="Stretch"
-                          SelectionMode="Single"
-                          ItemsSource="{x:Bind ViewModel.PathInChannel}"
-                          SelectedItem="{x:Bind ViewModel.SelectedPath.Value, Mode=TwoWay}">
-                    <ListView.ItemTemplate>
-                        <DataTemplate x:DataType="model:ISourceDirectory">
-                            <Grid ColumnSpacing="8">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="16"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Viewbox Grid.Column="0" Width="16" Height="16">
-                                    <PathIcon 
-                                        Foreground="Blue" 
-                                            Data="M 22 4A 2,2,0,0,1,24,6V 16A 2,2,0,0,1,22,18H 6A 2,2,0,0,1,4,16V 4A 2,2,0,0,1,6,2H 12L 14 4H 22M 2 6V 20H 20V 22H 2A 2,2,0,0,1,0,20V 11H 0V 6H 2M 6 6V 16H 22V 6H 6Z"
-                                            Visibility="{x:Bind Recursive}"
-                                            ToolTipService.ToolTip="Recursive"/>
-                                </Viewbox>
-                                <TextBlock Grid.Column="1" Text="{x:Bind Path}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                            </Grid>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
-            </Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
 
-            <!-- HTTP Server -->
-            <TextBlock Text="HTTP Server"/>
-            <CheckBox Content="HTTP" IsChecked="{x:Bind ViewModel.EnableHttp.Value, Mode=TwoWay}"/>
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="5">
-                <TextBlock Text="Port" VerticalAlignment="Center"/>
-                <NumberBox Text="{x:Bind ViewModel.ServerPort.Value, Mode=TwoWay}" IsEnabled="{x:Bind ViewModel.EnableHttp.Value, Mode=OneWay}" Width="80" HorizontalAlignment="Left"/>
-            </StackPanel>
-
-            <CheckBox Content="HTTPS" IsChecked="{x:Bind ViewModel.EnableSSL.Value, Mode=TwoWay}"/>
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="5">
-                <TextBlock Text="Port" VerticalAlignment="Center"/>
-                <NumberBox Text="{x:Bind ViewModel.SSLServerPort.Value, Mode=TwoWay}" IsEnabled="{x:Bind ViewModel.EnableHttp.Value, Mode=OneWay}" Width="80" HorizontalAlignment="Left"/>
-            </StackPanel>
-        
-            <!-- mDNS   -->
-            <TextBlock Text="mDNS"/>
-
-            <CheckBox Content="mDNS Advertise" IsChecked="{x:Bind ViewModel.EnableMDNSAdvertising.Value, Mode=TwoWay}"/>
-            
-            <TextBlock Text="Server Name"/>
-            <TextBox Width="200"/>
-        
-            <!-- SSL -->
-            <TextBlock Text="SSL"/>
-  
-            <TextBlock Text="PFX File Path"/>
-            <StackPanel Orientation="Horizontal" Spacing="5">
-                <TextBox Text="{x:Bind ViewModel.PFXFilePath.Value, Mode=TwoWay}" Width="200"/>
-                <Button Content="…" Command="{x:Bind ViewModel.BrowsePfxFileCommand}"/>
-            </StackPanel>
-        
-            <Button Content="Generate..." Command="{x:Bind ViewModel.GeneratePfxFileCommand}"/>
-            <TextBlock Text="PFX Password"/>
-            <PasswordBox Password="{x:Bind ViewModel.PFXPassword.Value, Mode=TwoWay}" Width="200"/>
-
-            <!-- Navigation -->
-            <Button Content="Start Server" Command="{x:Bind ViewModel.StartServerCommand}"/>
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Padding="32,24,32,8" Spacing="2">
+            <TextBlock Text="DukeBox" Style="{StaticResource TitleLargeTextBlockStyle}"/>
+            <TextBlock Text="Configure media sources and server settings" 
+                       Style="{StaticResource BodyTextBlockStyle}"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
         </StackPanel>
-        <Grid
-            Background="#C0FFFFFF"
-            Visibility="{x:Bind ViewModel.Busy.Value}"
-            >
-            <StackPanel Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10">
-                <ProgressRing/>
-                <TextBlock Text="Waiting..." Foreground="Gray" Visibility="{x:Bind ViewModel.IsBusyMessageVisible.Value}"/>
-            </StackPanel>
 
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Padding="32,12,32,24" Spacing="16" MaxWidth="1000" HorizontalAlignment="Stretch">
+
+                <!-- Media Sources -->
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="Media Sources" Style="{StaticResource CardHeaderStyle}"/>
+                        <Grid ColumnSpacing="16" RowSpacing="8">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="240"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Grid Grid.Row="0" Grid.Column="0">
+                                <TextBlock Text="Channel" Style="{StaticResource BodyStrongTextBlockStyle}" VerticalAlignment="Center"/>
+                                <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Right">
+                                    <Button Style="{StaticResource IconButtonStyle}" Command="{x:Bind ViewModel.AddChannelCommand}" ToolTipService.ToolTip="Add channel">
+                                        <FontIcon Glyph="&#xE710;" FontSize="14"/>
+                                    </Button>
+                                    <Button Style="{StaticResource IconButtonStyle}" Command="{x:Bind ViewModel.RemoveChannelCommand}" ToolTipService.ToolTip="Remove channel">
+                                        <FontIcon Glyph="&#xE738;" FontSize="14"/>
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+
+                            <Grid Grid.Row="0" Grid.Column="1">
+                                <TextBlock Text="Folder" Style="{StaticResource BodyStrongTextBlockStyle}" VerticalAlignment="Center"/>
+                                <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Right">
+                                    <Button Style="{StaticResource IconButtonStyle}" Command="{x:Bind ViewModel.AddPathCommand}" ToolTipService.ToolTip="Add folder">
+                                        <FontIcon Glyph="&#xE710;" FontSize="14"/>
+                                    </Button>
+                                    <Button Style="{StaticResource IconButtonStyle}" Command="{x:Bind ViewModel.RemovePathCommand}" ToolTipService.ToolTip="Remove folder">
+                                        <FontIcon Glyph="&#xE738;" FontSize="14"/>
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+
+                            <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource ListBorderStyle}">
+                                <ListView x:Name="Channels"
+                                          SelectionMode="Single"
+                                          ItemsSource="{x:Bind ViewModel.Channels}"
+                                          SelectedItem="{x:Bind ViewModel.SelectedChannel.Value, Mode=TwoWay}">
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate x:DataType="model:ICategory">
+                                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                                <FontIcon Glyph="&#xE8B7;" FontSize="14" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
+                                                <TextBlock Text="{x:Bind Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                </ListView>
+                            </Border>
+
+                            <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource ListBorderStyle}">
+                                <ListView x:Name="Folders"
+                                          SelectionMode="Single"
+                                          ItemsSource="{x:Bind ViewModel.PathInChannel}"
+                                          SelectedItem="{x:Bind ViewModel.SelectedPath.Value, Mode=TwoWay}">
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate x:DataType="model:ISourceDirectory">
+                                            <Grid ColumnSpacing="10">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="16"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Viewbox Grid.Column="0" Width="16" Height="16">
+                                                    <PathIcon
+                                                        Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                                        Data="M 22 4A 2,2,0,0,1,24,6V 16A 2,2,0,0,1,22,18H 6A 2,2,0,0,1,4,16V 4A 2,2,0,0,1,6,2H 12L 14 4H 22M 2 6V 20H 20V 22H 2A 2,2,0,0,1,0,20V 11H 0V 6H 2M 6 6V 16H 22V 6H 6Z"
+                                                        Visibility="{x:Bind Recursive}"
+                                                        ToolTipService.ToolTip="Recursive"/>
+                                                </Viewbox>
+                                                <TextBlock Grid.Column="1" Text="{x:Bind Path}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                </ListView>
+                            </Border>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Server settings -->
+                <Grid ColumnSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- HTTP Server -->
+                    <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="HTTP Server" Style="{StaticResource CardHeaderStyle}"/>
+                            <Grid>
+                                <ToggleSwitch Header="HTTP" IsOn="{x:Bind ViewModel.EnableHttp.Value, Mode=TwoWay}"/>
+                                <NumberBox Header="Port" Width="110" HorizontalAlignment="Right"
+                                           SpinButtonPlacementMode="Compact"
+                                           Text="{x:Bind ViewModel.ServerPort.Value, Mode=TwoWay}"
+                                           IsEnabled="{x:Bind ViewModel.EnableHttp.Value, Mode=OneWay}"/>
+                            </Grid>
+                            <Grid>
+                                <ToggleSwitch Header="HTTPS" IsOn="{x:Bind ViewModel.EnableSSL.Value, Mode=TwoWay}"/>
+                                <NumberBox Header="Port" Width="110" HorizontalAlignment="Right"
+                                           SpinButtonPlacementMode="Compact"
+                                           Text="{x:Bind ViewModel.SSLServerPort.Value, Mode=TwoWay}"
+                                           IsEnabled="{x:Bind ViewModel.EnableHttp.Value, Mode=OneWay}"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- mDNS -->
+                    <Border Grid.Column="1" Style="{StaticResource CardStyle}">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="mDNS" Style="{StaticResource CardHeaderStyle}"/>
+                            <ToggleSwitch Header="Advertise" IsOn="{x:Bind ViewModel.EnableMDNSAdvertising.Value, Mode=TwoWay}"/>
+                            <TextBox Header="Server Name" HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- SSL -->
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="SSL" Style="{StaticResource CardHeaderStyle}"/>
+                        <Grid ColumnSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0" Header="PFX File Path" Text="{x:Bind ViewModel.PFXFilePath.Value, Mode=TwoWay}"/>
+                            <Button Grid.Column="1" VerticalAlignment="Bottom" Command="{x:Bind ViewModel.BrowsePfxFileCommand}" ToolTipService.ToolTip="Browse">
+                                <FontIcon Glyph="&#xE838;" FontSize="16"/>
+                            </Button>
+                            <Button Grid.Column="2" VerticalAlignment="Bottom" Command="{x:Bind ViewModel.GeneratePfxFileCommand}">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE8D7;" FontSize="14"/>
+                                    <TextBlock Text="Generate..."/>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                        <PasswordBox Header="PFX Password" MaxWidth="400" HorizontalAlignment="Left" Width="400"
+                                     Password="{x:Bind ViewModel.PFXPassword.Value, Mode=TwoWay}"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Footer -->
+        <Border Grid.Row="2"
+                Background="{ThemeResource LayerFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="0,1,0,0"
+                Padding="32,12">
+            <Button HorizontalAlignment="Right" Style="{StaticResource AccentButtonStyle}"
+                    Padding="20,8" Command="{x:Bind ViewModel.StartServerCommand}">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <FontIcon Glyph="&#xE768;" FontSize="14"/>
+                    <TextBlock Text="Start Server"/>
+                </StackPanel>
+            </Button>
+        </Border>
+
+        <!-- Busy overlay -->
+        <Grid Grid.RowSpan="3"
+              Background="{ThemeResource SmokeFillColorDefaultBrush}"
+              Visibility="{x:Bind ViewModel.Busy.Value}">
+            <Border Style="{StaticResource CardStyle}" Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
+                    HorizontalAlignment="Center" VerticalAlignment="Center" Padding="32,24">
+                <StackPanel Orientation="Vertical" HorizontalAlignment="Center" Spacing="12">
+                    <ProgressRing IsActive="True" Width="48" Height="48"/>
+                    <TextBlock Text="Waiting..." HorizontalAlignment="Center"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               Visibility="{x:Bind ViewModel.IsBusyMessageVisible.Value}"/>
+                </StackPanel>
+            </Border>
         </Grid>
     </Grid>
 </Page>
