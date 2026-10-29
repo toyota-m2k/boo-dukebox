@@ -68,8 +68,10 @@ namespace DukeBox {
                 .AddSingleton<IMainThreadService, MainThreadService>()
                 .AddSingleton<IPageService, PageService>()
                 .AddSingleton<IDialogService, DialogService>()
+                .AddSingleton<LogViewModel>()
                 .AddSingleton<MainWindowViewModel>()
                 .AddSingleton<EntryPageViewModel>()
+                .AddSingleton<ServerPageViewModel>()
                 ;
 
             Services = services.BuildServiceProvider();
@@ -88,6 +90,7 @@ namespace DukeBox {
             _window = new MainWindow();
             _window.Activate();
             _window.AppWindow.Closing += AppWindow_Closing;
+            UtLog.GlobalLoggerChain.AddLogger(GetService<LogViewModel>());
             GetService<IPageService>().Startup(_window.RootFrame);
         }
 
@@ -119,7 +122,9 @@ namespace DukeBox {
                 args.Cancel = true;
                 Task.Run(async () => {
                     await httpService.StopAsync();
-                    await _window.Dispatcher.RunAsync(CoreDispatcherPriority.High, () => {
+                    GetService<IMainThreadService>().Run(() => {
+                        if (_window == null) return;
+                        _window.AppWindow.Closing -= AppWindow_Closing;
                         _window.Close();
                     });
                     // StopAsyncがタイムアウトした場合、Running.Value が false にならないので、

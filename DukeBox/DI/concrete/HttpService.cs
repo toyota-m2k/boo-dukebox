@@ -131,7 +131,7 @@ public class HttpService : IHttpService {
                         {"rating", true},
                         {"mark", true},
                         {"chapter", true},
-                        {"reputation", 2 },             // reputation (category/mark/rating) コマンド対応 1:RO /2:RW
+                        {"reputation", 0 },             // reputation (category/mark/rating) コマンド対応 1:RO /2:RW
                         {"diff", false},                // date以降の更新チェック(check)、差分リスト取得に対応
                         {"sync", false },               // 端末間同期
                         {"acceptRequest", false },        // register command をサポートする

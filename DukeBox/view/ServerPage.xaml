@@ -6,9 +6,53 @@
     xmlns:local="using:DukeBox.view"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:tv="using:WinUI.TableView"
     mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary Source="./Converters.xaml"/>
+    </UserControl.Resources>
 
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>  <!-- toolbar-->
+            <RowDefinition Height="*"/>     <!-- content -->
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="3*"/>   <!-- item list -->
+            <ColumnDefinition Width="1*"/>   <!-- log view -->
+        </Grid.ColumnDefinitions>
+        
+        <!-- toolbar -->
+        <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Height="36" HorizontalAlignment="Left">
+            <Button Content="Stop Server" Command="{x:Bind ViewModel.StopServerCommand}"/>
+        </StackPanel>
+        
+        <!-- content -->
+        <Grid Grid.Row="1" Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="36"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Text="Media Files"/>
+            <tv:TableView 
+                Grid.Row="1"
+                x:Name="tableView" 
+                ItemsSource="{x:Bind ViewModel.MediaFiles}" SelectionMode="Multiple"
+                >
+            
+            </tv:TableView>
+        </Grid>
+
+        <!-- log view -->
+        <Grid Grid.Row="1" Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="36"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Row="0" Text="Log"/>
+            <local:LogView Grid.Row="1"/>
+        </Grid>
 
     </Grid>
 </Page>

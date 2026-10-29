@@ -175,7 +175,7 @@ public class EntryPageViewModel {
         }
     }
 
-    private bool _dirty = false;
+    private bool _dirty = true;     // 初回は必ず UpdateScanners()を実行する
 
     private bool IsSameCategory(ICategory? c1, ICategory? c2) {
         return IsSameCategory(c1?.Id, c2?.Id);
@@ -406,7 +406,7 @@ public class EntryPageViewModel {
             });
             _dirty = false;
         }
-        if (!EnableHttp.Value||!EnableSSL.Value) {
+        if (!EnableHttp.Value&&!EnableSSL.Value) {
             await _dialogService.ShowMessage("Server", "HTTP server is not enabled.");
             return false;
         }

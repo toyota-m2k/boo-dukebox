@@ -29,7 +29,6 @@ public class ListingFileService : IListingFileService {
 
     private SemaphoreSlim lockSemaphoe = new SemaphoreSlim(1, 1);
     private AtomicBoolean busy = new AtomicBoolean(false);
-    private bool cancelling = false;
 
     #endregion
 
@@ -42,7 +41,8 @@ public class ListingFileService : IListingFileService {
 
 
     public async Task UpdateScanners() {
-        await CancelScan(keepLock:true); // Scan中ならキャンセルし、lockSemaphoeを取得した状態で返ってくる
+        await StopScanAsync();
+        await lockSemaphoe.WaitAsync();
         try {
             Scanners.Clear();
             await Task.Run(() => {
@@ -71,18 +71,18 @@ public class ListingFileService : IListingFileService {
         }
     }
 
-    private async Task CancelScan(bool keepLock=true) {
-        await StopScanAsync();
-        cancelling = true;
-        Logger.Warn("Cancelling scan...");
-        await lockSemaphoe.WaitAsync();
-        cancelling = false;
-        if (!keepLock) {
-            lockSemaphoe.Release();
-        }
-    }
+    //private async Task CancelScan(bool keepLock=true) {
+    //    await StopScanAsync();
+    //   cancelling = true;
+    //    Logger.Warn("Cancelling scan...");
+    //    await lockSemaphoe.WaitAsync();
+    //    cancelling = false;
+    //    if (!keepLock) {
+    //        lockSemaphoe.Release();
+    //    }
+    //}
 
-    private async Task ScanNow() {
+    private async Task ScanNow(CancellationToken ct) {
         await Task.Run(async () => {
             if (!busy.CompareAndSet(false, true)) {
                 Logger.Warn("Scan already in progress.");
@@ -91,6 +91,9 @@ public class ListingFileService : IListingFileService {
             try {
                 await lockSemaphoe.WaitAsync();
                 foreach (var scanner in Scanners) {
+                    if (ct.IsCancellationRequested) { 
+                        break;
+                    }
                     var (appended, removed) = scanner.Scan();
                     if (appended.Count > 0) {
                         Logger.Info($"{appended.Count} new files found in {scanner.DirectoryPath}");
@@ -98,7 +101,7 @@ public class ListingFileService : IListingFileService {
                             foreach (var file in appended) {
                                 var duration = (await MediaUtil.GetDurationAsync(file.FullName))?.TotalMilliseconds ?? 0;
                                 store.AddOrUpdate(file.FullName, file.Name, file.Length, file.Extension, (long)Math.Round(duration));
-                                if (cancelling) {
+                                if (ct.IsCancellationRequested) {
                                     Logger.Warn("Scan cancelled.");
                                     break;
                                 }
@@ -152,11 +155,15 @@ public class ListingFileService : IListingFileService {
         var cts = new CancellationTokenSource();
         cancellationTokenSource = cts;
         Task.Run(async () => {
-            while (!cts.IsCancellationRequested) {
-                await ScanNow();
-                await Task.Delay(interval, cts.Token);
+            try {
+                while (!cts.IsCancellationRequested) {
+                    await ScanNow(cts.Token);
+                    await Task.Delay(interval, cts.Token);
+                }
             }
-            IsRunning.Value = false;
+            finally {
+                IsRunning.Value = false;
+            }
         });
     }
 
