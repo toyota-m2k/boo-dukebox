@@ -94,9 +94,9 @@ public class FileEntryList : IMutableMediaFileStore {
         _changeInfoQueue = new ChangeInfoQueue(_connector);
     }
 
-    public IEnumerable<IMediaFile> RawList() {
-        return _entries;
-    }
+    //public IEnumerable<IMediaFile> RawList() {
+    //    return _entries;
+    //}
 
     public IEnumerable<IMediaFile> Enumerable(bool tracking = false) {
         return _entries.Include(e => e.CategoryRef).Let(it => {
@@ -209,6 +209,11 @@ public class FileEntryList : IMutableMediaFileStore {
         else {
             throw new ArgumentException("entry must be FileEntry");
         }
+    }
+
+    IMediaFile IMutableMediaFileStore.Update(IMediaFile modifiedEntry) { 
+        return Update(modifiedEntry, modifiedEntry.Name, modifiedEntry.Size, modifiedEntry.Duration, modifiedEntry.Converted,
+            modifiedEntry.Rating, modifiedEntry.Mark, modifiedEntry.Label, modifiedEntry.Category, modifiedEntry.Chapters);
     }
 
     public static string GetConvertedFilePath(string convertedSourcePath, IMediaFile entry) {

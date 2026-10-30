@@ -3,6 +3,7 @@ using DukeBox.DB.Accessor;
 using DukeBox.DI.contract;
 using DukeBox.model;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -182,12 +183,12 @@ public class DBService : IDBService {
         foreach (var srcDirEntry in srcDirEntries) {
             IList<IMediaFile> files;
             if (srcDirEntry.Recursive) {
-                files = store.Enumerable().Where(it => {
+                files = store.Enumerable(tracking:true).Where(it => {
                     return it.Path.StartsWith(srcDirEntry.Path, StringComparison.OrdinalIgnoreCase);
                 }).ToList();
             }
             else {
-                files = store.Enumerable().Where(it => {
+                files = store.Enumerable(tracking:true).Where(it => {
                     var fileName = Path.GetFileName(it.Path);
                     return it.Path.Equals(Path.Combine(srcDirEntry.Path, fileName), StringComparison.OrdinalIgnoreCase);
                 }).ToList();

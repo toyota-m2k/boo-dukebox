@@ -6,6 +6,7 @@ using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Text;
@@ -46,13 +47,13 @@ public class ListingFileService : IListingFileService {
         try {
             Scanners.Clear();
             await Task.Run(() => {
-                var pathList = DBService.SourceDirectoryStore.List().ToList().Select(it => it.Path);
+                var sourceDirectoryList = DBService.SourceDirectoryStore.List().ToList();
                 // Settingsに登録されているTargetPathListに対してFileScanner を構築する
-                foreach (var path in pathList) {
-                    var scanner = new FileScanner(path);
+                foreach (var dir in sourceDirectoryList) {
+                    var scanner = new FileScanner(dir.Path, dir.Category??0L);
                     // DBに登録されているファイル一覧
                     var files = DBService.MediaFileStore.List()
-                                    .Where(rec => rec.Path.StartsWith(path, StringComparison.OrdinalIgnoreCase))
+                                    .Where(rec => rec.Path.StartsWith(dir.Path, StringComparison.OrdinalIgnoreCase))
                                     .Select(rec => rec.Path);
                     // DBの登録を元に、FileScannerの内容を復元し、存在しないファイルをDBから削除する。
                     var removed = scanner.RestoreWith(files);
@@ -97,17 +98,17 @@ public class ListingFileService : IListingFileService {
                     var (appended, removed) = scanner.Scan();
                     if (appended.Count > 0) {
                         Logger.Info($"{appended.Count} new files found in {scanner.DirectoryPath}");
-                        await DBService.EditMediaFileStore(async store => {
-                            foreach (var file in appended) {
+                        foreach (var file in appended) {
+                            await DBService.EditMediaFileStore(async store => {
                                 var duration = (await MediaUtil.GetDurationAsync(file.FullName))?.TotalMilliseconds ?? 0;
-                                store.AddOrUpdate(file.FullName, file.Name, file.Length, file.Extension, (long)Math.Round(duration));
-                                if (ct.IsCancellationRequested) {
-                                    Logger.Warn("Scan cancelled.");
-                                    break;
-                                }
+                                store.AddOrUpdate(file.FullName, Path.GetFileNameWithoutExtension(file.Name), file.Length, file.Extension, (long)Math.Round(duration), category: scanner.Category);
+                                return true;    // updated
+                            });
+                            if (ct.IsCancellationRequested) {
+                                Logger.Warn("Scan cancelled.");
+                                break;
                             }
-                            return true;    // updated
-                        });
+                        }
                     }
                 }
             }
@@ -121,6 +122,15 @@ public class ListingFileService : IListingFileService {
         });
     }
 
+    private IMediaFile? findById(long id) {
+        return MediaFiles.FirstOrDefault(it => it.Id == id);
+    }
+    private int indexOf(long id) {
+        var item = findById(id);
+        if (item == null) return -1;
+        return MediaFiles.IndexOf(item);
+    }
+
     private void OnMediaFileStoreChanged(DataChangeInfo change) {
 
         switch (change.Type) {
@@ -128,13 +138,16 @@ public class ListingFileService : IListingFileService {
                 MediaFiles.Add(change.Item);
                 break;
             case DataChangeInfo.Change.Update:
-                var index = MediaFiles.IndexOf(change.Item);
+                var index = indexOf(change.Item.Id);
                 if (index >= 0) {
                     MediaFiles[index] = change.Item;
                 }
                 break;
             case DataChangeInfo.Change.Remove:
-                MediaFiles.Remove(change.Item);
+                var del = findById(change.Item.Id);
+                if (del!=null) {
+                    MediaFiles.Remove(del);
+                }
                 break;
             case DataChangeInfo.Change.ResetAll:
                 MediaFiles.Clear();

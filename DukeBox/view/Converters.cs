@@ -287,3 +287,27 @@ public class LogLevelToColorConverter : IValueConverter {
         throw new NotImplementedException();
     }
 }
+
+public class ThousandsSeparatorConverter : IValueConverter {
+    public object Convert(object value, Type t, object p, string l) => value is long n ? n.ToString("N0") : value;
+    public object ConvertBack(object value, Type t, object p, string l) => throw new NotSupportedException();
+}
+
+
+public class UnixMsToDateStringConverter : IValueConverter {
+    public object Convert(object value, Type t, object p, string l) =>
+        value is long ms && ms > 0
+            ? DateTimeOffset.FromUnixTimeMilliseconds(ms).ToLocalTime().ToString((p as string) ?? "yyyy/MM/dd HH:mm")
+            : "";
+    public object ConvertBack(object value, Type t, object p, string l) => throw new NotSupportedException();
+}
+
+public class MediaTypeToGlyphConverter : IValueConverter {
+    public object Convert(object value, Type t, object p, string l) => (value as string)?.ToLowerInvariant() switch {
+        "mp4" or "mov" or "avi" or "mkv" => "\uE714",   // Video
+        "jpg" or "jpeg" or "png" or "gif" => "\uEB9F",  // Photo
+        "mp3" or "m4a" or "wav" => "\uE8D6",            // Audio
+        _ => "\uE8A5",                                  // Document
+    };
+    public object ConvertBack(object value, Type t, object p, string l) => throw new NotSupportedException();
+}

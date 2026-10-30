@@ -18,5 +18,7 @@
     <common:IntVisibilityConverter x:Key="IntVisibilityConverter"/>
     <common:FileNameToDateStringConverter x:Key="FileNameToDateStringConverter"/>
     <common:LogLevelToColorConverter x:Key="LogLevelToColorConverter"/>
-
+    <common:ThousandsSeparatorConverter x:Key="ThousandsSeparatorConverter"/>
+    <common:UnixMsToDateStringConverter x:Key="UnixMsToDateStringConverter"/>
+    <common:MediaTypeToGlyphConverter x:Key="MediaTypeToGlyphConverter"/>
 </ResourceDictionary>

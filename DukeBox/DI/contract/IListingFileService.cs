@@ -7,6 +7,11 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace DukeBox.DI.contract; 
+
+public interface IMediaFilter {
+    public bool Filter(IMediaFile item);
+}
+
 public interface IListingFileService {
     ObservableCollection<IMediaFile> MediaFiles { get; }
 

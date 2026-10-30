@@ -66,18 +66,21 @@ public class FileScanner {
     public HashSet<string>? Exts { get; }
     public bool Recursive { get; }
     public string DirectoryPath { get; }
+    public long Category { get; }
     private List<FileInfo> _files = new();
 
-    public FileScanner(string directoryPath, HashSet<string>? exts, bool recursive = true) {
+    public FileScanner(string directoryPath, long category, HashSet<string>? exts, bool recursive = true) {
         DirectoryPath = directoryPath;
         Exts = exts;
         Recursive = recursive;
+        Category = category;
     }
 
-    public FileScanner(string directoryPath, bool recursive = true) {
+    public FileScanner(string directoryPath, long category, bool recursive = true) {
         DirectoryPath = directoryPath;
         Exts = MEDIA_EXTS;
         Recursive = recursive;
+        Category = category;
     }
 
     /**

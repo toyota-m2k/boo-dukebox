@@ -80,6 +80,9 @@ namespace DukeBox {
 
         private void OnUnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e) {
             Logger.Error(e.Exception, "Unhandled Exception");
+            if (e.Exception is ArgumentOutOfRangeException { Source: "WinUI.TableView" }) {
+                e.Handled = true;
+            }
         }
 
         /// <summary>

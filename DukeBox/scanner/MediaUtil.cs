@@ -22,7 +22,7 @@ public static class MediaUtil {
                 var anal = await GGAnalyzer.AnalyzeAsync(path);
                 return TimeSpan.FromMilliseconds(anal.DurationMs);
             }
-            catch (Exception _) {
+            catch (Exception) {
                 Logger.Error($"Failed to analyze media file by ffmpeg.");
             }
             // fallback ...
@@ -33,7 +33,7 @@ public static class MediaUtil {
             var clip = await MediaClip.CreateFromFileAsync(file);
             return clip.OriginalDuration;
         }
-        catch (Exception _) {
+        catch (Exception) {
             Logger.Error($"Failed to analyze media file by MediaClip.");
             return null;
         }
