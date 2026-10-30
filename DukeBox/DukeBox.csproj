@@ -12,7 +12,16 @@
     <WinUISDKReferences>false</WinUISDKReferences>
     <EnableMsixTooling>true</EnableMsixTooling>
     <Nullable>enable</Nullable>
-  </PropertyGroup>
+    </PropertyGroup>
+
+    <!-- Debug: self-contained so it can run both as Package and Unpackaged -->
+    <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+      <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    </PropertyGroup>
+    <!-- Release: framework-dependent MSIX -->
+    <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+      <WindowsAppSDKSelfContained>false</WindowsAppSDKSelfContained>
+    </PropertyGroup>
   <ItemGroup>
     <Content Remove="Assets\db.svg" />
   </ItemGroup>
