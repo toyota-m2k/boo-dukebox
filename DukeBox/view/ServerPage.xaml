@@ -68,7 +68,14 @@
                     <!-- Size: 3 桁区切り / 編集不可 -->
                     <tv:TableViewTextColumn Header="Size" IsReadOnly="True"
                     Binding="{Binding Size, Converter={StaticResource ThousandsSeparatorConverter}}"
-                    Width="*"/>
+                    Width="*">
+                        <tv:TableViewTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="HorizontalAlignment" Value="Right"/>
+                                <Setter Property="TextAlignment" Value="Right"/>
+                            </Style>
+                        </tv:TableViewTextColumn.ElementStyle>
+                    </tv:TableViewTextColumn>
 
                     <!-- Date: 整形 / 編集不可 -->
                     <tv:TableViewTextColumn Header="Created" IsReadOnly="True"
@@ -82,7 +89,7 @@
                     Width="80" 
                     IsReadOnly="True"/>
 
-                    <!-- bool: チェックアイコン / 編集不可 -->
+                    <!-- bool: チェックアイコン / 編集不可 
                     <tv:TableViewTemplateColumn Header="Converted" IsReadOnly="True" Width="*">
                         <tv:TableViewTemplateColumn.CellTemplate>
                             <DataTemplate x:DataType="vm:IMediaFile">
@@ -91,6 +98,7 @@
                             </DataTemplate>
                         </tv:TableViewTemplateColumn.CellTemplate>
                     </tv:TableViewTemplateColumn>
+                    -->
 
                     <!-- Path: 編集不可 -->
                     <tv:TableViewTextColumn 

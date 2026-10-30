@@ -136,8 +136,8 @@ public class FileEntryList : IMutableMediaFileStore {
         }
 
         long now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-        long creation = new DateTimeOffset(info.CreationTimeUtc).ToUnixTimeSeconds();
-        long lastModified = new DateTimeOffset(info.LastWriteTimeUtc).ToUnixTimeSeconds();
+        long creation = new DateTimeOffset(info.CreationTimeUtc).ToUnixTimeMilliseconds();
+        long lastModified = new DateTimeOffset(info.LastWriteTimeUtc).ToUnixTimeMilliseconds();
 
         FileEntry entry;
         lock (_connector) {
