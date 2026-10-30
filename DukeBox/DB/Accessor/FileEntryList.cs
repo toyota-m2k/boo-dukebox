@@ -146,7 +146,7 @@ public class FileEntryList : IMutableMediaFileStore {
                 Name = name, 
                 Size = size, 
                 Duration=duration, 
-                Type = type,
+                Type = typeValue,
                 Converted = converted,
                 CreationDate = creation,
                 LastModifiedDate = lastModified,

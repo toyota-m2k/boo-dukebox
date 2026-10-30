@@ -12,7 +12,8 @@
     <WinUISDKReferences>false</WinUISDKReferences>
     <EnableMsixTooling>true</EnableMsixTooling>
     <Nullable>enable</Nullable>
-    </PropertyGroup>
+    <Version>0.1.1</Version>
+  </PropertyGroup>
 
     <!-- Debug: self-contained so it can run both as Package and Unpackaged -->
     <PropertyGroup Condition="'$(Configuration)' == 'Debug'">

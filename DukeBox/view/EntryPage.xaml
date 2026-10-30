@@ -45,7 +45,14 @@
 
         <!-- Header -->
         <StackPanel Grid.Row="0" Padding="32,24,32,8" Spacing="2">
-            <TextBlock Text="DukeBox" Style="{StaticResource TitleLargeTextBlockStyle}"/>
+            <StackPanel Orientation="Horizontal" Spacing="20">
+                <TextBlock Text="{x:Bind ViewModel.PageLabel}" Style="{StaticResource TitleTextBlockStyle}" VerticalAlignment="Bottom"/>
+                <TextBlock Text="{x:Bind ViewModel.AppVersion}" 
+                           Style="{StaticResource SubtitleTextBlockStyle}"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                           VerticalAlignment="Bottom"
+                           />
+            </StackPanel>
             <TextBlock Text="Configure media sources and server settings" 
                        Style="{StaticResource BodyTextBlockStyle}"
                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
@@ -166,7 +173,7 @@
                                 <NumberBox Header="Port" Width="110" HorizontalAlignment="Right"
                                            SpinButtonPlacementMode="Compact"
                                            Text="{x:Bind ViewModel.SSLServerPort.Value, Mode=TwoWay}"
-                                           IsEnabled="{x:Bind ViewModel.EnableHttp.Value, Mode=OneWay}"/>
+                                           IsEnabled="{x:Bind ViewModel.EnableSSL.Value, Mode=OneWay}"/>
                             </Grid>
                         </StackPanel>
                     </Border>
@@ -176,13 +183,13 @@
                         <StackPanel Spacing="8">
                             <TextBlock Text="mDNS" Style="{StaticResource CardHeaderStyle}"/>
                             <ToggleSwitch Header="Advertise" IsOn="{x:Bind ViewModel.EnableMDNSAdvertising.Value, Mode=TwoWay}"/>
-                            <TextBox Header="Server Name" HorizontalAlignment="Stretch"/>
+                            <TextBox Header="Server Name" HorizontalAlignment="Stretch" Text="{x:Bind ViewModel.ServerName.Value, Mode=TwoWay}"/>
                         </StackPanel>
                     </Border>
                 </Grid>
 
                 <!-- SSL -->
-                <Border Style="{StaticResource CardStyle}">
+                <Border Style="{StaticResource CardStyle}" Visibility="{x:Bind ViewModel.EnableSSL.Value, Mode=OneWay}">
                     <StackPanel Spacing="12">
                         <TextBlock Text="SSL" Style="{StaticResource CardHeaderStyle}"/>
                         <Grid ColumnSpacing="8">
@@ -228,14 +235,14 @@
         <!-- Busy overlay -->
         <Grid Grid.RowSpan="3"
               Background="{ThemeResource SmokeFillColorDefaultBrush}"
-              Visibility="{x:Bind ViewModel.Busy.Value}">
+              Visibility="{x:Bind ViewModel.Busy.Value, Mode=OneWay}">
             <Border Style="{StaticResource CardStyle}" Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
                     HorizontalAlignment="Center" VerticalAlignment="Center" Padding="32,24">
                 <StackPanel Orientation="Vertical" HorizontalAlignment="Center" Spacing="12">
                     <ProgressRing IsActive="True" Width="48" Height="48"/>
-                    <TextBlock Text="Waiting..." HorizontalAlignment="Center"
+                    <TextBlock Text="{x:Bind ViewModel.BusyMessage.Value, Mode=OneWay}" HorizontalAlignment="Center"
                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                               Visibility="{x:Bind ViewModel.IsBusyMessageVisible.Value}"/>
+                               Visibility="{x:Bind ViewModel.IsBusyMessageVisible.Value, Mode=OneWay}"/>
                 </StackPanel>
             </Border>
         </Grid>

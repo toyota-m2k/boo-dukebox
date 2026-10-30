@@ -27,6 +27,7 @@ namespace DukeBox.DI.concrete;
 public class HttpService : IHttpService {
     private IDBService DBService { get; }
     private ISettingsService SettingsService { get; }
+    private IAppConfigService AppConfigService { get; }
     private UtLog Logger = new UtLog("HTTP");
     private Regex RegRange = new Regex(@"bytes=(?<start>\d+)(?:-(?<end>\d+))?");
 
@@ -128,8 +129,8 @@ public class HttpService : IHttpService {
                         {"version", 2},
                         {"root", "/" },
                         {"category", true},
-                        {"rating", true},
-                        {"mark", true},
+                        {"rating", false},
+                        {"mark", false},
                         {"chapter", true},
                         {"reputation", 0 },             // reputation (category/mark/rating) コマンド対応 1:RO /2:RW
                         {"diff", false},                // date以降の更新チェック(check)、差分リスト取得に対応
@@ -179,7 +180,7 @@ public class HttpService : IHttpService {
                     var photo = types?.Contains("p") ?? true;
                     var audio = types?.Contains("a") ?? false;
                     var date = Convert.ToInt64(p.GetValue("d")??"0");
-                    var list = DBService.MediaFileStore.Enumerable().Where((it) => {
+                    var list = DBService.MediaFileStore.List().Where((it) => {
                         // filter
                         if(it.Deleted) return false;
                         if (!string.IsNullOrWhiteSpace(types)) {
@@ -510,8 +511,12 @@ public class HttpService : IHttpService {
 
         _mdns = new MdnsAdvertiser();
         try {
-            _mdns.Start(SettingsService.ServerName, port, isHttps, fp);
-            Logger.Info($"mDNS advertised: _booapi._tcp / {SettingsService.ServerName} (port={port}, https={isHttps})");
+            var serverName = SettingsService.ServerName;
+            if (string.IsNullOrWhiteSpace(serverName)) {
+                serverName = AppConfigService.AppName;
+            }
+            _mdns.Start(serverName, port, isHttps, fp);
+            Logger.Info($"mDNS advertised: _booapi._tcp / {serverName} (port={port}, https={isHttps})");
         }
         catch (Exception e) {
             Logger.Error(e, "mDNS advertise failed");
@@ -559,9 +564,10 @@ public class HttpService : IHttpService {
         _serverList.OnNext(_servers.ToList());
     }
 
-    public HttpService(IDBService dbService, ISettingsService settingsService) {
+    public HttpService(IDBService dbService, ISettingsService settingsService, IAppConfigService appConfigService) {
         DBService = dbService;
         SettingsService = settingsService;
+        AppConfigService = appConfigService;
         Running = _serverList
             .Select(list => list.Count == 0
                 ? Observable.Return(false)  // 空なら false

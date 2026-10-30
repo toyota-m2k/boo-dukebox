@@ -1,4 +1,5 @@
 ﻿using DukeBox.DB;
+using DukeBox.DI.concrete;
 using DukeBox.DI.contract;
 using DukeBox.model;
 using io.github.toyota32k.BooLib.Utils;
@@ -9,8 +10,10 @@ using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -69,26 +72,26 @@ public class EntryPageViewModel {
     public ReactiveProperty<bool> Busy { get; } = new(false);
     public ReactiveProperty<string> BusyMessage { get; } = new("");
     public ReadOnlyReactiveProperty<bool> IsBusyMessageVisible { get; }
-    public Task WithBusy(string message, Func<Task> action) {
+    public async Task WithBusy(string message, Func<Task> action) {
         var orgBusy = Busy.Value;
         var orgMessage = BusyMessage.Value;
         BusyMessage.Value = message;
         Busy.Value = true;
         try {
-            return action();
+            await action();
         }
         finally {
             Busy.Value = orgBusy;
             BusyMessage.Value = orgMessage;
         }
     }
-    public Task<T> WithBusy<T>(string message, Func<Task<T>> action) {
+    public async Task<T> WithBusy<T>(string message, Func<Task<T>> action) {
         var orgBusy = Busy.Value;
         var orgMessage = BusyMessage.Value;
         BusyMessage.Value = message;
         Busy.Value = true;
         try {
-            return action();
+            return await action();
         }
         finally {
             Busy.Value = orgBusy;
@@ -107,8 +110,11 @@ public class EntryPageViewModel {
     private IDialogService _dialogService;
     private IPageService _pageService;
 
+    public string PageLabel { get; }
+    public string AppVersion { get; }
 
     public EntryPageViewModel(
+        IAppConfigService appConfigService,
         ISettingsService settingsService, 
         IDBService dBService,
         IListingFileService listingFileService,
@@ -121,6 +127,9 @@ public class EntryPageViewModel {
         _httpService = httpService;
         _dialogService = dialogService;
         _pageService = pageService;
+
+        PageLabel = appConfigService.AppName;
+        AppVersion = appConfigService.AppVersion.ToString();
 
         // Channels
         Channels.Clear();
@@ -379,6 +388,20 @@ public class EntryPageViewModel {
         });
     }
 
+    private bool TryLoadCertificate(string pfxPath, string password) {
+        try {
+            var cert = X509CertificateLoader.LoadPkcs12FromFile(
+                pfxPath,
+                password,
+                X509KeyStorageFlags.UserKeySet | X509KeyStorageFlags.PersistKeySet);
+            return cert != null;
+        }
+        catch (Exception e) {
+            Logger.Error(e, "Failed to load certificate.");
+            return false;
+        }
+    }
+
     /**
      * 設定を保存する。
      * 設定が変更されていた場合、スキャナの更新も行う。
@@ -410,6 +433,18 @@ public class EntryPageViewModel {
             await _dialogService.ShowMessage("Server", "HTTP server is not enabled.");
             return false;
         }
+        if (EnableSSL.Value) {
+            if (string.IsNullOrWhiteSpace(PFXFilePath.Value) || !File.Exists(PFXFilePath.Value)) {
+                await _dialogService.ShowMessage("Server", "PFX File is required for SSL.");
+                return false;
+            }
+
+            if (!TryLoadCertificate(PFXFilePath.Value, PFXPassword.Value)) {
+                await _dialogService.ShowMessage("Server", "Failed to load PFX File.");
+                return false;
+            }
+        }
+
         return true;
     }
 
@@ -418,9 +453,12 @@ public class EntryPageViewModel {
             if (!await SaveAndCheck()) {
                 return;
             }
+            BusyMessage.Value = "Starting File Scanners...";
             _listingFileService.StartScan();
 
+            BusyMessage.Value = "Starting HTTP Server...";
             _httpService.Start();
+            BusyMessage.Value = "Starting Server Page...";
             _pageService.GoToServerPage();
         });
     }
