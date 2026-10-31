@@ -7,15 +7,15 @@ namespace DukeBox.model;
 
 public class MediaFilter : IMediaFilter {
     public long Category = -1; // -1: all / 0: default / 1...
-    public int[]? Rating = null; // null: all / ratings to allow
-    public int[]? Mark = null;   // 
+    public IList<bool>? Ratings = null; // null: all / ratings to allow
+    public IList<bool>? Marks = null;   // 
 
     public enum MediaType {
         VIDEO,
         AUDIO,
         PHOTO,
     }
-    public MediaType[]? TargetTypes = null;
+    public IList<MediaType>? TargetTypes = null;
 
     public MediaType? MediaTypeOf(IMediaFile file) {
         switch (file.BooMediaType) {
@@ -67,13 +67,15 @@ public class MediaFilter : IMediaFilter {
                 return false;
             }
         }
-        if (Rating != null) {
-            if (!Rating.Contains(item.Rating)) {
+        if (Ratings != null) {
+            var r = Math.Clamp(item.ComplementalRating - 1, 0, Ratings.Count - 1);
+            if (!Ratings[r]) {
                 return false;
             }
         }
-        if (Mark != null) {
-            if (!Mark.Contains(item.Mark)) {
+        if (Marks != null) {
+            var m = Math.Clamp(item.Mark, 0, Marks.Count - 1);
+            if (!Marks[m]) {
                 return false;
             }
         }
@@ -99,5 +101,43 @@ public class MediaFilter : IMediaFilter {
         return true;
     }
 
+    public bool IsEmpty =>
+        Category < 0 && Ratings == null && Marks == null && TargetTypes == null && !EnableStartDate && !EnableEndDate;
+
+    class EmptyFilter : IMediaFilter {
+        public bool IsEmpty => true;
+        public bool Filter(IMediaFile item) => true;
+    }
+    public static IMediaFilter Empty { get; } = new EmptyFilter();
+
+
+    private static bool IsEqualList<T>(IList<T>? a, IList<T>? b) {
+        if (a == null && b == null) return true;
+        if (a == null || b == null) return false;
+        if (a.Count != b.Count) return false;
+        for (var i = 0; i < a.Count; i++) {
+            if (!EqualityComparer<T>.Default.Equals(a[i], b[i])) {
+                return false;
+            }
+        }
+        return true;
+    }
+    public static bool IsEqual(IMediaFilter a, IMediaFilter b) {
+        //if (a == null && b == null) return true;
+        //if (a == null || b == null) return false;
+        if (a.IsEmpty && b.IsEmpty) return true;
+        if (a is MediaFilter ma && b is MediaFilter mb) {
+            if (ma.Category != mb.Category) return false;
+            if (ma.EnableStartDate != mb.EnableStartDate) return false;
+            if (ma.EnableEndDate != mb.EnableEndDate) return false;
+            if (ma.EnableStartDate && ma.StartDate != mb.StartDate) return false;
+            if (ma.EnableEndDate && ma.EndDate != mb.EndDate) return false;
+            if (!IsEqualList(ma.Ratings, mb.Ratings)) return false;
+            if (!IsEqualList(ma.Marks, mb.Marks)) return false;
+            if (!IsEqualList(ma.TargetTypes, mb.TargetTypes)) return false;
+            return true;
+        }
+        return false;
+    }
 }
 

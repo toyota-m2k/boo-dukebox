@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 namespace DukeBox.DI.contract; 
 
 public interface IMediaFilter {
+    public bool IsEmpty { get; }
     public bool Filter(IMediaFile item);
 }
 
@@ -34,4 +35,6 @@ public interface IListingFileService {
      * 定期的なScanner実行を停止する。
      */
     Task StopScanAsync();
+
+    void SetFilter(IMediaFilter? filter);
 }

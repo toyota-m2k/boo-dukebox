@@ -1,3 +1,4 @@
+using DukeBox.DI.contract;
 using DukeBox.model;
 using DukeBox.view.viewmodel;
 using Microsoft.UI.Xaml;
@@ -23,11 +24,15 @@ namespace DukeBox.view;
 /// <summary>
 /// An empty page that can be used on its own or navigated to within a Frame.
 /// </summary>
-public sealed partial class ServerPage : Page {
+public sealed partial class ServerPage : Page, INavigationAware {
     public ServerPageViewModel ViewModel { get; } = App.GetService<ServerPageViewModel>();
 
     public ServerPage() {
         InitializeComponent();
+    }
+
+    private void OnCategorySelectionChanged(object sender, SelectionChangedEventArgs e) {
+        categoryFlyout.Hide();
     }
 
     private void OnCellEditing(object sender, WinUI.TableView.TableViewCellEditEndingEventArgs e) {
@@ -68,5 +73,21 @@ public sealed partial class ServerPage : Page {
         ViewModel.Logger.Debug($"{e.Cell.Name} - {(e.DataItem as IMediaFile)?.Name ?? "null"}");
 
         e.Cancel = true;
+    }
+
+    private IEnumerable<IMediaFile> GetDisplayedList(bool onlySelected) {
+        if (onlySelected) {
+            return tableView.SelectedItems.OfType<IMediaFile>();
+        } else {
+            return tableView.Items.OfType<IMediaFile>();
+        }
+    }
+
+    public void OnPageActivated() {
+        ViewModel.GetDisplayedItemsProc = GetDisplayedList;
+    }
+
+    public void OnPageLeaving() {
+        ViewModel.GetDisplayedItemsProc = null;
     }
 }

@@ -115,6 +115,9 @@ public class FileEntry : IMediaFile {
     //[NotMapped]
     //public string FilePath => string.IsNullOrEmpty(CopyPath) ? Path : CopyPath;
 
+    [NotMapped]
+    public int ComplementalRating => (Rating==0) ? 3 : Math.Clamp(Rating, 1, 5);
+
     public FileEntry Modify(string? name = null, long? size = null, long? duration = null, bool? converted= null, long? lastModified = null,
         bool? deleted = null, int? rating = null, int? mark = null, string? label = null, long? category = null, string? chapters = null)
     {

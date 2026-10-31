@@ -190,4 +190,21 @@ public class ListingFileService : IListingFileService {
             Logger.Warn("StopScanAsync: Timeout waiting for scan to stop.");
         }
     }
+
+    private IMediaFilter _filter = MediaFilter.Empty;
+    public void SetFilter(IMediaFilter? filter) {
+        if (filter == null) {
+            filter = MediaFilter.Empty;
+        }
+        if (MediaFilter.IsEqual(_filter, filter)) {
+            return;
+        }
+        _filter = filter;
+        MediaFiles.Clear();
+        foreach (var item in DBService.MediaFileStore.Enumerable()) {
+            if (filter.Filter(item)) {
+                MediaFiles.Add(item);
+            }
+        }
+    }
 }

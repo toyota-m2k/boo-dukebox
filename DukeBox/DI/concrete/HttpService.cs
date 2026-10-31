@@ -173,14 +173,14 @@ public class HttpService : IHttpService {
                     var category = p.GetValue("c");
                     var rating = Convert.ToInt32(p.GetValue("r")??"0");
                     var marks = (p.GetValue("m")??"0").Split('.').Select((v)=>Convert.ToInt32(v)).ToList();
-                    var sourceType = (SourceType)Convert.ToInt32(p.GetValue("s")??"0");
+                    var sourceType = (MediaListMode)Convert.ToInt32(p.GetValue("s")??"0");
                     var search = p.GetValue("t");
                     var types = p.GetValue("f")?.ToLower();
                     var video = types?.Contains("v") ?? true;
                     var photo = types?.Contains("p") ?? true;
                     var audio = types?.Contains("a") ?? false;
                     var date = Convert.ToInt64(p.GetValue("d")??"0");
-                    var list = DBService.MediaFileStore.List().Where((it) => {
+                    var list = _mediaListSource.GetMediaList(sourceType).Where((it) => {
                         // filter
                         if(it.Deleted) return false;
                         if (!string.IsNullOrWhiteSpace(types)) {
@@ -564,10 +564,27 @@ public class HttpService : IHttpService {
         _serverList.OnNext(_servers.ToList());
     }
 
+    class MediaListSourceWrapper : IMediaListSource {
+        private IDBService _dbService;
+        public IMediaListSource? ExternalMediaListSource = null;
+        public MediaListSourceWrapper(IDBService dbService) {
+            _dbService = dbService;
+        }
+        public IList<IMediaFile> GetMediaList(MediaListMode mode) {
+            return ExternalMediaListSource?.GetMediaList(mode) ?? _dbService.MediaFileStore.List();
+        }
+    }
+    private MediaListSourceWrapper _mediaListSource;
+
+    public void SetMediaListSource(IMediaListSource? source) {
+        _mediaListSource.ExternalMediaListSource = source;
+    }
+
     public HttpService(IDBService dbService, ISettingsService settingsService, IAppConfigService appConfigService) {
         DBService = dbService;
         SettingsService = settingsService;
         AppConfigService = appConfigService;
+        _mediaListSource = new MediaListSourceWrapper(dbService);
         Running = _serverList
             .Select(list => list.Count == 0
                 ? Observable.Return(false)  // 空なら false

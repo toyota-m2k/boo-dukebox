@@ -60,4 +60,7 @@ public class CategoryEntry : ICategory {
             throw new ArgumentException("The provided category is not a CategoryEntry.", nameof(category));
         }
     }
+
+    public static ICategory DEFAULT = new CategoryEntry() { Id = 0, Name = "Default" };
+    public static ICategory ALL = new CategoryEntry() { Id = -1, Name = "ALL" };
 }

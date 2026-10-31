@@ -30,7 +30,7 @@ public interface IMediaFile {
     //public string FilePath { get; }                        // ファイルの絶対パスを返す。CopyPathが設定されている場合はCopyPathを返す。}
     public string BooMediaType { get; }                     // Boo ProtocolのMediaTypeを返す。動画なら"v"、画像なら"p"、音声なら"a"、それ以外は""を返す。
     public string ContentType { get; }                      // MIMEタイプ（Content-Type）を返す。mp4ならvideo/mp4、pngならimage/png、jpg/jpegならimage/jpeg、mp3/m4aならaudio/mpeg
-
+    public int ComplementalRating { get; }                  // Rating == 0 （デフォルト）を 3 として扱うプロパティ
     /**
      * 変更可能なプロパティを変更した新しいIMediaFileインスタンスを返す。
      * 変更しない項目は null （デフォルト引数）を指定する。

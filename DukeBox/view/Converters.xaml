@@ -21,4 +21,5 @@
     <common:ThousandsSeparatorConverter x:Key="ThousandsSeparatorConverter"/>
     <common:UnixMsToDateStringConverter x:Key="UnixMsToDateStringConverter"/>
     <common:MediaTypeToGlyphConverter x:Key="MediaTypeToGlyphConverter"/>
+    <common:RatingToGeometryConverter x:Key="RatingToGeometryConverter"/>
 </ResourceDictionary>

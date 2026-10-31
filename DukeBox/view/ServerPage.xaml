@@ -23,10 +23,116 @@
         </Grid.ColumnDefinitions>
         
         <!-- toolbar -->
-        <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Height="36" HorizontalAlignment="Left">
-            <Button Content="Stop Server" Command="{x:Bind ViewModel.StopServerCommand}"/>
+        <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Height="36" Spacing="4" HorizontalAlignment="Left">
+            <TextBlock Text="Channel" VerticalAlignment="Center"/>
+            <DropDownButton Content="{x:Bind ViewModel.SelectedCategory.Value.Name, Mode=OneWay}" xmlns:model="using:DukeBox.model">
+                <DropDownButton.Flyout>
+                    <Flyout x:Name="categoryFlyout" Placement="BottomEdgeAlignedLeft">
+                        <ListView ItemsSource="{x:Bind ViewModel.CategoryList}" SelectionMode="Single" MaxHeight="400"
+                                  SelectedItem="{x:Bind ViewModel.SelectedCategory.Value, Mode=TwoWay}"
+                                  SelectionChanged="OnCategorySelectionChanged">
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="model:ICategory">
+                                    <TextBlock Text="{x:Bind Name}"/>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </Flyout>
+                </DropDownButton.Flyout>
+            </DropDownButton>
+
+            <CheckBox 
+                Content="Type" HorizontalAlignment="Left" MinWidth="0" Margin="12,0,4,0"
+                IsChecked="{x:Bind ViewModel.TypeFilterEnabled.Value, Mode=TwoWay}"
+                />
+            <StackPanel 
+                Orientation="Horizontal" Spacing="1"
+                Visibility="{x:Bind ViewModel.TypeFilterEnabled.Value, Mode=OneWay}">
+                <ToggleButton Padding="5" IsChecked="{x:Bind ViewModel.TypeVideoChecked.Value, Mode=TwoWay}">
+                    <Viewbox Width="12" Height="12">
+                        <FontIcon Glyph="&#xE714;"/>
+                    </Viewbox>
+                </ToggleButton>
+                <ToggleButton Padding="5" IsChecked="{x:Bind ViewModel.TypeAudioChecked.Value, Mode=TwoWay}">
+                    <Viewbox Width="12" Height="12">
+                        <FontIcon Glyph="&#xE8D6;"/>
+                    </Viewbox>
+                </ToggleButton>
+                <ToggleButton Padding="5" IsChecked="{x:Bind ViewModel.TypePhotoChecked.Value, Mode=TwoWay}">
+
+                    <Viewbox Width="12" Height="12">
+                        <FontIcon Glyph="&#xEB9F;"/>
+                    </Viewbox>
+                </ToggleButton>
+            </StackPanel>
+            
+            <CheckBox 
+                Content="Rating" HorizontalAlignment="Left" MinWidth="0" Margin="12,0,4,0"
+                IsChecked="{x:Bind ViewModel.RatingFilterEnabled.Value, Mode=TwoWay}"/>
+            <StackPanel 
+                Orientation="Horizontal" Spacing="1"
+                Visibility="{x:Bind ViewModel.RatingFilterEnabled.Value, Mode=OneWay}">
+                <ToggleButton Padding="5" IsChecked="{x:Bind ViewModel.Rating1Checked.Value, Mode=TwoWay}">
+                    <Viewbox Width="12" Height="12">
+                        <FontIcon Glyph="&#xF146;"/>
+                    </Viewbox>
+                </ToggleButton>
+                <ToggleButton Padding="5" IsChecked="{x:Bind ViewModel.Rating2Checked.Value, Mode=TwoWay}">
+                    <Viewbox Width="12" Height="12">
+                        <FontIcon Glyph="&#xF147;"/>
+                    </Viewbox>
+                </ToggleButton>
+                <ToggleButton Padding="5" IsChecked="{x:Bind ViewModel.Rating3Checked.Value, Mode=TwoWay}">
+                    <Viewbox Width="12" Height="12">
+                        <FontIcon Glyph="&#xF148;"/>
+                    </Viewbox>
+                </ToggleButton>
+                <ToggleButton Padding="5" IsChecked="{x:Bind ViewModel.Rating4Checked.Value, Mode=TwoWay}">
+                    <Viewbox Width="12" Height="12">
+                        <FontIcon Glyph="&#xF149;"/>
+                    </Viewbox>
+                </ToggleButton>
+                <ToggleButton Padding="5" IsChecked="{x:Bind ViewModel.Rating5Checked.Value, Mode=TwoWay}">
+                    <Viewbox Width="12" Height="12">
+                        <FontIcon Glyph="&#xF14A;"/>
+                    </Viewbox>
+                </ToggleButton>
+            </StackPanel>
+            
+            <!-- Mark -->
+
+            <CheckBox 
+                Content="Mark" MinWidth="0" Margin="12,0,4,0"
+                IsChecked="{x:Bind ViewModel.MarkFilterEnabled.Value, Mode=TwoWay}"/>
+            <StackPanel Orientation="Horizontal" Spacing="1"
+                Visibility="{x:Bind ViewModel.MarkFilterEnabled.Value, Mode=OneWay}">
+                <ToggleButton Padding="5" IsChecked="{x:Bind ViewModel.Mark0Checked.Value, Mode=TwoWay}">
+                    <Viewbox Width="12" Height="12">
+                        <FontIcon Glyph="&#xE739;"/>
+                    </Viewbox>
+                </ToggleButton>
+                <ToggleButton Padding="5" IsChecked="{x:Bind ViewModel.Mark1Checked.Value, Mode=TwoWay}">
+
+                    <Viewbox Width="12" Height="12">
+                        <FontIcon Glyph="&#xE734;"/>
+                    </Viewbox>
+                </ToggleButton>
+                <ToggleButton Padding="5" IsChecked="{x:Bind ViewModel.Mark2Checked.Value, Mode=TwoWay}">
+                    <Viewbox Width="12" Height="12">
+                        <FontIcon Glyph="&#xE81B;"/>
+                    </Viewbox>
+                </ToggleButton>
+                <ToggleButton Padding="5" IsChecked="{x:Bind ViewModel.Mark3Checked.Value, Mode=TwoWay}">
+                    <Viewbox Width="12" Height="12">
+                        <FontIcon Glyph="&#xEB51;"/>
+                    </Viewbox>
+                </ToggleButton>
+            </StackPanel>
+
         </StackPanel>
-        
+
+        <Button Grid.Row="0" Grid.Column="1" Content="Stop Server" Command="{x:Bind ViewModel.StopServerCommand}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+
         <!-- content -->
         <Grid Grid.Row="1" Grid.Column="0">
             <Grid.RowDefinitions>
@@ -51,7 +157,8 @@
                 <tv:TableView.Columns>
 
                     <!-- Type: アイコン表示 -->
-                    <tv:TableViewTemplateColumn Header="Type" Width="50" IsReadOnly="True">
+                    <tv:TableViewTemplateColumn Header="" Width="50" IsReadOnly="True"
+                        SortMemberPath="Type" CanSort="True">
                         <tv:TableViewTemplateColumn.CellTemplate>
                             <DataTemplate x:DataType="vm:IMediaFile">
                                 <FontIcon Glyph="{x:Bind Type, Converter={StaticResource MediaTypeToGlyphConverter}}" FontSize="16"/>
@@ -66,9 +173,12 @@
                     Width="*"/>
 
                     <!-- Size: 3 桁区切り / 編集不可 -->
-                    <tv:TableViewTextColumn Header="Size" IsReadOnly="True"
+                    <tv:TableViewTextColumn 
+                        Header="Size" IsReadOnly="True"
+                        CanFilter="False"
+                        CanGroup="False"
                     Binding="{Binding Size, Converter={StaticResource ThousandsSeparatorConverter}}"
-                    Width="*">
+                    Width="100">
                         <tv:TableViewTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Setter Property="HorizontalAlignment" Value="Right"/>
@@ -78,15 +188,18 @@
                     </tv:TableViewTextColumn>
 
                     <!-- Date: 整形 / 編集不可 -->
-                    <tv:TableViewTextColumn Header="Created" IsReadOnly="True"
+                    <tv:TableViewTextColumn 
+                        Header="Created" IsReadOnly="True"
+                        CanFilter="False"
+                        CanGroup="False"
                     Binding="{Binding CreationDate, Converter={StaticResource UnixMsToDateStringConverter}}"
-                    Width="*"/>
+                    Width="140"/>
 
                     <!-- Category: 編集不可 -->
                     <tv:TableViewTextColumn 
-                    Header="Category" 
+                    Header="Channel" 
                     Binding="{Binding CategoryName}" 
-                    Width="80" 
+                    Width="85" 
                     IsReadOnly="True"/>
 
                     <!-- bool: チェックアイコン / 編集不可 
@@ -100,11 +213,28 @@
                     </tv:TableViewTemplateColumn>
                     -->
 
+                    <tv:TableViewTemplateColumn Header="Rating" Width="50"
+                        SortMemberPath="ComplementalRating" CanSort="True">
+                        <tv:TableViewTemplateColumn.CellTemplate>
+                            <DataTemplate x:DataType="vm:IMediaFile">
+                                <TextBlock Text="{x:Bind Rating}" HorizontalAlignment="Center"/>
+                                <!--
+                                <Viewbox Width="20" Height="20">
+                                    <Path Width="24" Height="24"
+                                          Fill="{ThemeResource TextFillColorPrimaryBrush}"
+                                          Data="{x:Bind ComplementalRating, Converter={StaticResource RatingToGeometryConverter}}"/>
+                                </Viewbox>
+                                -->
+                            </DataTemplate>
+                        </tv:TableViewTemplateColumn.CellTemplate>
+                    </tv:TableViewTemplateColumn>
+                    
                     <!-- Path: 編集不可 -->
                     <tv:TableViewTextColumn 
                     Header="Path" 
                     Binding="{Binding Path}" 
                     IsReadOnly="True"
+                        CanGroup="False"
                     Width="*"/>
                 </tv:TableView.Columns>
             </tv:TableView>
