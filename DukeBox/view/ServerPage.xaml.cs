@@ -75,11 +75,11 @@ public sealed partial class ServerPage : Page, INavigationAware {
         e.Cancel = true;
     }
 
-    private IEnumerable<IMediaFile> GetDisplayedList(bool onlySelected) {
+    private IList<IMediaFile> GetDisplayedList(bool onlySelected) {
         if (onlySelected) {
-            return tableView.SelectedItems.OfType<IMediaFile>();
+            return tableView.SelectedItems.OfType<IMediaFile>().ToList();
         } else {
-            return tableView.Items.OfType<IMediaFile>();
+            return tableView.Items.OfType<IMediaFile>().ToList();
         }
     }
 

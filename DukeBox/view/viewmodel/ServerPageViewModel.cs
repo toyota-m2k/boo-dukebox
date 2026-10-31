@@ -14,7 +14,7 @@ using System.Text;
 
 namespace DukeBox.view.viewmodel;
 
-public class ServerPageViewModel {
+public class ServerPageViewModel: IMediaListSource {
     public UtLog Logger = new UtLog("ServerPage");
     private readonly IHttpService _httpService;
     private readonly IListingFileService _listingFileService;
@@ -60,10 +60,10 @@ public class ServerPageViewModel {
 
     #region Media File List
 
-    public Func<bool, IEnumerable<IMediaFile>>? GetDisplayedItemsProc;
+    public Func<bool, IList<IMediaFile>>? GetDisplayedItemsProc;
 
     public ObservableCollection<IMediaFile> MediaFiles => _listingFileService.MediaFiles;
-    public IEnumerable<IMediaFile> GetItemList(MediaListMode mode) {
+    public IList<IMediaFile> GetMediaList(MediaListMode mode) {
         switch (mode) {
             default:
             case MediaListMode.ALL:
@@ -136,6 +136,9 @@ public class ServerPageViewModel {
         Filter.Subscribe(filter => {
             _listingFileService.SetFilter(filter);
         });
+
+        // DIで循環参照にならないよう、ここで_httpServerにIMediaListSourceを注入
+        _httpService.SetMediaListSource(this);
     }
     #endregion
 
