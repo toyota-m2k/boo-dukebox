@@ -1,6 +1,8 @@
 using DukeBox.view.viewmodel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
+using System.Linq;
 using System.Collections.Specialized;
 
 // To learn more about WinUI, the WinUI project structure,
@@ -18,10 +20,17 @@ public sealed partial class LogView : UserControl {
     private void OnLogMessagesChanged(object? sender, NotifyCollectionChangedEventArgs e) {
         if (ViewModel.StopScroll.Value) return;
         DispatcherQueue.TryEnqueue(() => {
-            if (scrollViewer.ScrollableHeight > 0) {
-                scrollViewer.ChangeView(null, scrollViewer.ScrollableHeight, null);
+            if (ViewModel.LogMessages.Count > 0) {
+                logListView.ScrollIntoView(ViewModel.LogMessages[^1]);
             }
         });
+    }
+
+    private void OnCopyAccelerator(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args) {
+        var selected = logListView.SelectedItems.Cast<LogMessage>()
+            .OrderBy(m => ViewModel.LogMessages.IndexOf(m));
+        ViewModel.CopyToClipboard(selected);
+        args.Handled = true;
     }
 
     private void OnLoaded(object sender, RoutedEventArgs e) {

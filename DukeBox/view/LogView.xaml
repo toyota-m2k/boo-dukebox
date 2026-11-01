@@ -32,17 +32,29 @@
             </Button>
         </StackPanel>
         <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="1" Padding="5">
-            <ScrollViewer x:Name="scrollViewer" VerticalScrollBarVisibility="Auto">
-                <ItemsControl ItemsSource="{x:Bind ViewModel.LogMessages}">
-                    <ItemsControl.ItemTemplate>
+            <ListView x:Name="logListView" ItemsSource="{x:Bind ViewModel.LogMessages}" SelectionMode="Extended">
+                <ListView.Resources>
+                    <SolidColorBrush x:Key="ListViewItemBackgroundSelected" Color="{ThemeResource SystemAccentColor}" Opacity="0.35"/>
+                    <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPointerOver" Color="{ThemeResource SystemAccentColor}" Opacity="0.45"/>
+                    <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPressed" Color="{ThemeResource SystemAccentColor}" Opacity="0.55"/>
+                </ListView.Resources>
+                <ListView.KeyboardAccelerators>
+                    <KeyboardAccelerator Modifiers="Control" Key="C" Invoked="OnCopyAccelerator"/>
+                </ListView.KeyboardAccelerators>
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="MinHeight" Value="0"/>
+                        <Setter Property="Padding" Value="4,1"/>
+                    </Style>
+                </ListView.ItemContainerStyle>
+                <ListView.ItemTemplate>
                         <DataTemplate x:DataType="model:LogMessage">
                             <TextBlock 
                                 Text="{x:Bind Message}" TextWrapping="Wrap" 
                                 Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}"/>
                         </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
+                        </ListView.ItemTemplate>
+                    </ListView>
         </Border>
     </Grid>
 </UserControl>

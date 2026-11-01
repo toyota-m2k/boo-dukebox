@@ -1,6 +1,7 @@
 using DukeBox.DI.contract;
 using io.github.toyota32k.BooLib.Utils;
 using Reactive.Bindings;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
@@ -54,6 +55,16 @@ public class LogViewModel : IUtLogger {
                 _logMessages.RemoveAt(0);
             }
         });
+    }
+
+    public void CopyToClipboard(IEnumerable<LogMessage> messages) {
+        var sb = new StringBuilder();
+        foreach (var log in messages) {
+            sb.AppendLine($"[{log.Level}] {log.Message}");
+        }
+        var dataPackage = new DataPackage();
+        dataPackage.SetText(sb.ToString());
+        Clipboard.SetContent(dataPackage);
     }
 
     public void ClearLog() {
