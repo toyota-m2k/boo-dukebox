@@ -57,6 +57,16 @@ public class SettingsService : ISettingsService {
         set => DBService.KVStore[KEY_SERVER_NAME] = value;
     }
 
+    public string EnsureServerName {
+        get {
+            var serverName = this.ServerName;
+            if (string.IsNullOrWhiteSpace(serverName)) {
+                serverName = AppConfigService.AppName;
+            }
+            return serverName;
+        }
+    }
+
     static readonly string KEY_SERVER_PORT = "ServerPort";
     static readonly int DEFAULT_SERVER_PORT = 3030;
     public int ServerPort { 

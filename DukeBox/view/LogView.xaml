@@ -41,6 +41,9 @@
                 <ListView.KeyboardAccelerators>
                     <KeyboardAccelerator Modifiers="Control" Key="C" Invoked="OnCopyAccelerator"/>
                 </ListView.KeyboardAccelerators>
+                <ListView.ItemContainerTransitions>
+                    <TransitionCollection/>
+                </ListView.ItemContainerTransitions>
                 <ListView.ItemContainerStyle>
                     <Style TargetType="ListViewItem">
                         <Setter Property="MinHeight" Value="0"/>

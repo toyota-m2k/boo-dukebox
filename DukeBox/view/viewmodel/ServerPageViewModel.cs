@@ -2,14 +2,18 @@
 using DukeBox.DI.concrete;
 using DukeBox.DI.contract;
 using DukeBox.model;
+using io.github.toyota32k.BooLib.Server.mdns;
 using io.github.toyota32k.BooLib.Utils;
 using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Reactive.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace DukeBox.view.viewmodel;
@@ -20,8 +24,10 @@ public class ServerPageViewModel: IMediaListSource {
     private readonly IListingFileService _listingFileService;
     private readonly IPageService _pageService;
     private readonly IDBService _dBService;
+    private readonly ISettingsService _settingsService;
 
     public ReactiveCommand StopServerCommand = new ReactiveCommand();
+    public ReactiveCommand ShowQRCodeCommand = new ReactiveCommand();
 
     #region Filter
 
@@ -76,12 +82,21 @@ public class ServerPageViewModel: IMediaListSource {
     }
 
 
-    public ServerPageViewModel(IHttpService httpService, IListingFileService listingFileService, IPageService pageService, IDBService dBService) {
+    public ServerPageViewModel(
+        IHttpService httpService, 
+        IListingFileService listingFileService, 
+        IPageService pageService, 
+        IDBService dBService,
+        ISettingsService settings
+        ) {
         _httpService = httpService;
         _listingFileService = listingFileService;
         _pageService = pageService;
         _dBService = dBService;
+        _settingsService = settings;
+
         StopServerCommand.Subscribe(StopServer);
+        ShowQRCodeCommand.Subscribe(ShowQRCode);
 
         CategoryList = [CategoryEntry.ALL, CategoryEntry.DEFAULT, .. _dBService.CategoryStore.Enumerable()];
 
@@ -146,10 +161,41 @@ public class ServerPageViewModel: IMediaListSource {
         _pageService.GoBack();
     }
 
+    private async void ShowQRCode() {
+        var dlg = new PairingQRCodeDialog {
+            XamlRoot = App.MainWindow.Content.XamlRoot,
+            ServerName = _settingsService.EnsureServerName,
+            Port = _settingsService.EnableSSL ? _settingsService.SSLServerPort : _settingsService.ServerPort,
+            IsHttps = _settingsService.EnableSSL,
+            Fingerprint = ComputeFingerprintIfPossible()
+        };
+        await dlg.ShowAsync();
+    }
+
     public void UpdateMediaFile(IMediaFile file) {
         _dBService.EditMediaFileStore(store => {
             store.Update(file);
             return true;
         });
     }
+
+    private string ComputeFingerprintIfPossible() {
+        if (!_settingsService.EnableSSL) return "";
+        if (string.IsNullOrEmpty(_settingsService.PFXFilePath) || !File.Exists(_settingsService.PFXFilePath)) return "";
+        try {
+            // EphemeralKeySet: MSIX サンドボックス下でも OS ストアアクセスを発生させない
+            using var cert = X509CertificateLoader.LoadPkcs12FromFile(
+                _settingsService.PFXFilePath!, _settingsService.PFXPassword,
+                X509KeyStorageFlags.EphemeralKeySet);
+            //using var cert = new System.Security.Cryptography.X509Certificates.X509Certificate2(
+            //    settings.PfxPath!, settings.PfxPassword,
+            //    System.Security.Cryptography.X509Certificates.X509KeyStorageFlags.EphemeralKeySet);
+            return CertificateGenerator.ComputeSha256Fingerprint(cert);
+        }
+        catch (Exception e) {
+            Debug.WriteLine(e);
+            return "";
+        }
+    }
+
 }

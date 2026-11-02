@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -344,17 +346,5 @@ public class MdnsAdvertiser {
 
     private static List<IPAddress> GetLocalIPv4Addresses() {
         return MdnsCommon.MyAddresses.ToList();
-
-        //var list = new List<IPAddress>();
-        //foreach (var nic in NetworkInterface.GetAllNetworkInterfaces()) {
-        //    if (nic.OperationalStatus != OperationalStatus.Up) continue;
-        //    if (nic.NetworkInterfaceType == NetworkInterfaceType.Loopback) continue;
-        //    foreach (var ua in nic.GetIPProperties().UnicastAddresses) {
-        //        if (ua.Address.AddressFamily != AddressFamily.InterNetwork) continue;
-        //        if (IPAddress.IsLoopback(ua.Address)) continue;
-        //        list.Add(ua.Address);
-        //    }
-        //}
-        //return list.Distinct().ToList();
     }
 }

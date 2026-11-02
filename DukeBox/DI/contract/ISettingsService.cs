@@ -17,6 +17,7 @@ public interface ISettingsService {
     // Server
     bool EnableHttp { get; set; }
     string ServerName { get; set; }
+    string EnsureServerName { get; }
     int ServerPort { get; set; }
     int SSLServerPort { get; set; }
     bool EnableSSL { get; set; }
