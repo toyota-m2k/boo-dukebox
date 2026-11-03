@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="DukeBox.view.ServerPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:DukeBox.view"
+    xmlns:model="using:DukeBox.model"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:tv="using:WinUI.TableView"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="./Converters.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <Style x:Key="CardStyle" TargetType="Border">
+                <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}"/>
+                <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="CornerRadius" Value="8"/>
+                <Setter Property="Padding" Value="16,12"/>
+            </Style>
+            <Style x:Key="CardHeaderStyle" TargetType="TextBlock" BasedOn="{StaticResource BodyStrongTextBlockStyle}">
+                <Setter Property="VerticalAlignment" Value="Center"/>
+            </Style>
+            <Style x:Key="FilterGroupStyle" TargetType="Border">
+                <Setter Property="Background" Value="{ThemeResource LayerFillColorDefaultBrush}"/>
+                <Setter Property="BorderBrush" Value="{ThemeResource ControlStrokeColorDefaultBrush}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="CornerRadius" Value="6"/>
+                <Setter Property="Padding" Value="8,2,4,2"/>
+            </Style>
+            <Style x:Key="FilterToggleStyle" TargetType="ToggleButton" BasedOn="{StaticResource DefaultToggleButtonStyle}">
+                <Setter Property="Width" Value="28"/>
+                <Setter Property="Height" Value="28"/>
+                <Setter Property="Padding" Value="0"/>
+                <Setter Property="CornerRadius" Value="4"/>
+            </Style>
+            <Style x:Key="FilterCheckBoxStyle" TargetType="CheckBox" BasedOn="{StaticResource DefaultCheckBoxStyle}">
+                <Setter Property="MinWidth" Value="0"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+            </Style>
+        </ResourceDictionary>
+    </Page.Resources>
+
+    <Grid Padding="24,16,24,24" RowSpacing="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>  <!-- header -->
+            <RowDefinition Height="Auto"/>  <!-- filter bar -->
+            <RowDefinition Height="*"/>     <!-- content -->
+        </Grid.RowDefinitions>
+
+        <!-- header -->
+        <Grid Grid.Row="0">
+            <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                <Grid Width="12" Height="12" VerticalAlignment="Center">
+                    <Ellipse Fill="{ThemeResource SystemFillColorSuccessBrush}"/>
+                </Grid>
+                <StackPanel Spacing="0">
+                    <TextBlock Text="Server Running" Style="{StaticResource TitleTextBlockStyle}"/>
+                    <TextBlock Text="Browse and manage served media files"
+                               Style="{StaticResource BodyTextBlockStyle}"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                </StackPanel>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button 
+                    Height="34"
+                    Command="{x:Bind ViewModel.ShowQRCodeCommand}"
+                    >
+                    <PathIcon Data="M 3 11H 5V 13H 3V 11M 11 5H 13V 9H 11V 5M 9 11H 13V 15H 11V 13H 9V 11M 15 11H 17V 13H 19V 11H 21V 13H 19V 15H 21V 19H 19V 21H 17V 19H 13V 21H 11V 17H 15V 15H 17V 13H 15V 11M 19 19V 15H 17V 19H 19M 15 3H 21V 9H 15V 3M 17 5V 7H 19V 5H 17M 3 3H 9V 9H 3V 3M 5 5V 7H 7V 5H 5M 3 15H 9V 21H 3V 15M 5 17V 19H 7V 17H 5Z"  HorizontalAlignment="Center"/>
+                </Button>    
+                <Button VerticalAlignment="Center"
+                    Height="34"
+                    Command="{x:Bind ViewModel.StopServerCommand}"
+                    Padding="16,6" CornerRadius="6">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE71A;" FontSize="14" Foreground="{ThemeResource SystemFillColorCriticalBrush}"/>
+                        <TextBlock Text="Stop Server"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!-- filter bar -->
+        <Border Grid.Row="1" Style="{StaticResource CardStyle}" Padding="12,8">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" HorizontalScrollMode="Auto" VerticalScrollMode="Disabled">
+                <StackPanel Orientation="Horizontal" Spacing="12">
+
+                    <!-- Channel -->
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <FontIcon Glyph="&#xE8B7;" FontSize="14" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
+                        <TextBlock Text="Channel" Style="{StaticResource CardHeaderStyle}"/>
+                        <DropDownButton Content="{x:Bind ViewModel.SelectedCategory.Value.Name, Mode=OneWay}" MinWidth="120" CornerRadius="6">
+                            <DropDownButton.Flyout>
+                                <Flyout x:Name="categoryFlyout" Placement="BottomEdgeAlignedLeft">
+                                    <ListView ItemsSource="{x:Bind ViewModel.CategoryList}" SelectionMode="Single" MaxHeight="400"
+                                              SelectedItem="{x:Bind ViewModel.SelectedCategory.Value, Mode=TwoWay}"
+                                              SelectionChanged="OnCategorySelectionChanged">
+                                        <ListView.ItemTemplate>
+                                            <DataTemplate x:DataType="model:ICategory">
+                                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                                    <FontIcon Glyph="&#xE8B7;" FontSize="14" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
+                                                    <TextBlock Text="{x:Bind Name}" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ListView.ItemTemplate>
+                                    </ListView>
+                                </Flyout>
+                            </DropDownButton.Flyout>
+                        </DropDownButton>
+                    </StackPanel>
+
+                    <AppBarSeparator VerticalAlignment="Center"/>
+
+                    <!-- Type -->
+                    <Border Style="{StaticResource FilterGroupStyle}" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="2">
+                            <CheckBox Content="Type" Style="{StaticResource FilterCheckBoxStyle}"
+                                      IsChecked="{x:Bind ViewModel.TypeFilterEnabled.Value, Mode=TwoWay}"/>
+                            <StackPanel Orientation="Horizontal" Spacing="2"
+                                        Visibility="{x:Bind ViewModel.TypeFilterEnabled.Value, Mode=OneWay}">
+                                <ToggleButton Style="{StaticResource FilterToggleStyle}" ToolTipService.ToolTip="Video"
+                                              IsChecked="{x:Bind ViewModel.TypeVideoChecked.Value, Mode=TwoWay}">
+                                    <FontIcon Glyph="&#xE714;" FontSize="13"/>
+                                </ToggleButton>
+                                <ToggleButton Style="{StaticResource FilterToggleStyle}" ToolTipService.ToolTip="Audio"
+                                              IsChecked="{x:Bind ViewModel.TypeAudioChecked.Value, Mode=TwoWay}">
+                                    <FontIcon Glyph="&#xE8D6;" FontSize="13"/>
+                                </ToggleButton>
+                                <ToggleButton Style="{StaticResource FilterToggleStyle}" ToolTipService.ToolTip="Photo"
+                                              IsChecked="{x:Bind ViewModel.TypePhotoChecked.Value, Mode=TwoWay}">
+                                    <FontIcon Glyph="&#xEB9F;" FontSize="13"/>
+                                </ToggleButton>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Rating -->
+                    <Border Style="{StaticResource FilterGroupStyle}" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="2">
+                            <CheckBox Content="Rating" Style="{StaticResource FilterCheckBoxStyle}"
+                                      IsChecked="{x:Bind ViewModel.RatingFilterEnabled.Value, Mode=TwoWay}"/>
+                            <StackPanel Orientation="Horizontal" Spacing="2"
+                                        Visibility="{x:Bind ViewModel.RatingFilterEnabled.Value, Mode=OneWay}">
+                                <ToggleButton Style="{StaticResource FilterToggleStyle}" IsChecked="{x:Bind ViewModel.Rating1Checked.Value, Mode=TwoWay}">
+                                    <FontIcon Glyph="&#xF146;" FontSize="13"/>
+                                </ToggleButton>
+                                <ToggleButton Style="{StaticResource FilterToggleStyle}" IsChecked="{x:Bind ViewModel.Rating2Checked.Value, Mode=TwoWay}">
+                                    <FontIcon Glyph="&#xF147;" FontSize="13"/>
+                                </ToggleButton>
+                                <ToggleButton Style="{StaticResource FilterToggleStyle}" IsChecked="{x:Bind ViewModel.Rating3Checked.Value, Mode=TwoWay}">
+                                    <FontIcon Glyph="&#xF148;" FontSize="13"/>
+                                </ToggleButton>
+                                <ToggleButton Style="{StaticResource FilterToggleStyle}" IsChecked="{x:Bind ViewModel.Rating4Checked.Value, Mode=TwoWay}">
+                                    <FontIcon Glyph="&#xF149;" FontSize="13"/>
+                                </ToggleButton>
+                                <ToggleButton Style="{StaticResource FilterToggleStyle}" IsChecked="{x:Bind ViewModel.Rating5Checked.Value, Mode=TwoWay}">
+                                    <FontIcon Glyph="&#xF14A;" FontSize="13"/>
+                                </ToggleButton>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Mark -->
+                    <Border Style="{StaticResource FilterGroupStyle}" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="2">
+                            <CheckBox Content="Mark" Style="{StaticResource FilterCheckBoxStyle}"
+                                      IsChecked="{x:Bind ViewModel.MarkFilterEnabled.Value, Mode=TwoWay}"/>
+                            <StackPanel Orientation="Horizontal" Spacing="2"
+                                        Visibility="{x:Bind ViewModel.MarkFilterEnabled.Value, Mode=OneWay}">
+                                <ToggleButton Style="{StaticResource FilterToggleStyle}" IsChecked="{x:Bind ViewModel.Mark0Checked.Value, Mode=TwoWay}">
+                                    <FontIcon Glyph="&#xE739;" FontSize="13"/>
+                                </ToggleButton>
+                                <ToggleButton Style="{StaticResource FilterToggleStyle}" IsChecked="{x:Bind ViewModel.Mark1Checked.Value, Mode=TwoWay}">
+                                    <FontIcon Glyph="&#xE734;" FontSize="13"/>
+                                </ToggleButton>
+                                <ToggleButton Style="{StaticResource FilterToggleStyle}" IsChecked="{x:Bind ViewModel.Mark2Checked.Value, Mode=TwoWay}">
+                                    <FontIcon Glyph="&#xE81B;" FontSize="13"/>
+                                </ToggleButton>
+                                <ToggleButton Style="{StaticResource FilterToggleStyle}" IsChecked="{x:Bind ViewModel.Mark3Checked.Value, Mode=TwoWay}">
+                                    <FontIcon Glyph="&#xEB51;" FontSize="13"/>
+                                </ToggleButton>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+
+        <!-- content -->
+        <Grid Grid.Row="2" ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*"/>   <!-- item list -->
+                <ColumnDefinition Width="1*"/>   <!-- log view -->
+            </Grid.ColumnDefinitions>
+
+            <!-- media files -->
+            <Border Grid.Column="0" Style="{StaticResource CardStyle}" Padding="0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Padding="16,12">
+                        <FontIcon Glyph="&#xE8B9;" FontSize="14" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
+                        <TextBlock Text="Media Files" Style="{StaticResource CardHeaderStyle}"/>
+                    </StackPanel>
+
+                    <Border Grid.Row="1" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="0,1,0,0">
+                        <tv:TableView
+                            x:Name="tableView"
+                            ItemsSource="{x:Bind ViewModel.MediaFiles}"
+                            AutoGenerateColumns="false"
+                            BeginningEdit="OnBeginningEdit"
+                            CellEditEnding="OnCellEditing"
+                            CellEditEnded="OnCellEdited"
+                            CellDoubleTapped="OnCellDoubleTapped"
+                            RowDoubleTapped="OnRowDoubleTapped"
+                            SelectionUnit="CellWithRow">
+                            <tv:TableView.Resources>
+                                <SolidColorBrush x:Key="TableViewRowBackgroundSelected" Color="{ThemeResource SystemAccentColor}" Opacity="0.35"/>
+                                <SolidColorBrush x:Key="TableViewRowBackgroundSelectedPointerOver" Color="{ThemeResource SystemAccentColor}" Opacity="0.45"/>
+                                <SolidColorBrush x:Key="TableViewRowBackgroundSelectedPressed" Color="{ThemeResource SystemAccentColor}" Opacity="0.55"/>
+                            </tv:TableView.Resources>
+                            <tv:TableView.Columns>
+
+                                <!-- Type: アイコン表示 -->
+                                <tv:TableViewTemplateColumn Header="" Width="50" IsReadOnly="True"
+                                    SortMemberPath="Type" CanSort="True">
+                                    <tv:TableViewTemplateColumn.CellTemplate>
+                                        <DataTemplate x:DataType="model:IMediaFile">
+                                            <FontIcon Glyph="{x:Bind Type, Converter={StaticResource MediaTypeToGlyphConverter}}" FontSize="16"
+                                                      Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
+                                        </DataTemplate>
+                                    </tv:TableViewTemplateColumn.CellTemplate>
+                                </tv:TableViewTemplateColumn>
+
+                                <!-- Name: 編集可能 -->
+                                <tv:TableViewTextColumn
+                                    Header="Name"
+                                    Binding="{Binding Name}"
+                                    Width="*"/>
+
+                                <!-- Size: 3 桁区切り / 編集不可 -->
+                                <tv:TableViewTextColumn
+                                    Header="Size" IsReadOnly="True"
+                                    CanFilter="False"
+                                    CanGroup="False"
+                                    Binding="{Binding Size, Converter={StaticResource ThousandsSeparatorConverter}}"
+                                    Width="100">
+                                    <tv:TableViewTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                                            <Setter Property="TextAlignment" Value="Right"/>
+                                        </Style>
+                                    </tv:TableViewTextColumn.ElementStyle>
+                                </tv:TableViewTextColumn>
+
+                                <!-- Date: 整形 / 編集不可 -->
+                                <tv:TableViewTextColumn
+                                    Header="Created" IsReadOnly="True"
+                                    CanFilter="False"
+                                    CanGroup="False"
+                                    Binding="{Binding CreationDate, Converter={StaticResource UnixMsToDateStringConverter}}"
+                                    Width="140"/>
+
+                                <!-- Category: 編集不可 -->
+                                <tv:TableViewTextColumn
+                                    Header="Channel"
+                                    Binding="{Binding CategoryName}"
+                                    Width="85"
+                                    IsReadOnly="True"/>
+
+                                <tv:TableViewTemplateColumn Header="Rating" Width="50"
+                                    SortMemberPath="ComplementalRating" CanSort="True">
+                                    <tv:TableViewTemplateColumn.CellTemplate>
+                                        <DataTemplate x:DataType="model:IMediaFile">
+                                            <TextBlock Text="{x:Bind Rating}" HorizontalAlignment="Center"/>
+                                        </DataTemplate>
+                                    </tv:TableViewTemplateColumn.CellTemplate>
+                                </tv:TableViewTemplateColumn>
+
+                                <!-- Path: 編集不可 -->
+                                <tv:TableViewTextColumn
+                                    Header="Path"
+                                    Binding="{Binding Path}"
+                                    IsReadOnly="True"
+                                    CanGroup="False"
+                                    Width="*"/>
+                            </tv:TableView.Columns>
+                        </tv:TableView>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- log view -->
+            <Border Grid.Column="1" Style="{StaticResource CardStyle}" Padding="0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Padding="16,12">
+                        <FontIcon Glyph="&#xE9D9;" FontSize="14" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
+                        <TextBlock Text="Log" Style="{StaticResource CardHeaderStyle}"/>
+                    </StackPanel>
+                    <Border Grid.Row="1" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="0,1,0,0" Padding="8">
+                        <local:LogView/>
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</Page>

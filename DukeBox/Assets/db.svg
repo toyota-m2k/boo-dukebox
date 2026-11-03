@@ -1,0 +1,67 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg"
+     width="24"
+     height="24"
+     viewBox="0 0 24 24">
+
+  <defs>
+
+    <!-- Fluent風背景 -->
+    <linearGradient id="bg"
+                    x1="0%"
+                    y1="0%"
+                    x2="100%"
+                    y2="100%">
+
+      <stop offset="0%" stop-color="#0A347E"/>
+      <stop offset="55%" stop-color="#1553D7"/>
+      <stop offset="100%" stop-color="#1B71FF"/>
+
+    </linearGradient>
+
+    <!-- Playシンボル -->
+    <linearGradient id="play"
+                    x1="0%"
+                    y1="0%"
+                    x2="0%"
+                    y2="100%">
+
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#FFFF00"/>
+
+    </linearGradient>
+
+    <!-- 配信波 -->
+    <linearGradient id="wave"
+                    x1="0%"
+                    y1="0%"
+                    x2="100%"
+                    y2="0%">
+
+      <stop offset="0%" stop-color="#72EDFF"/>
+      <stop offset="100%" stop-color="#2AD1FF"/>
+
+    </linearGradient>
+
+  </defs>
+
+  <!-- 背景 -->
+  <rect
+      x="0"
+      y="0"
+      width="24"
+      height="24"
+      rx="2"
+      fill="url(#bg)"/>
+
+  <!-- Play -->
+  <path
+        d="M 2 6.855V 17.355L 8.82 12.105 2 6.855Z"
+        fill="url(#play)"/>
+
+  <!-- Wave 1 -->
+  <path
+      d="M 9.72 12L 12.984 14.79072C 13.494 14.01552 13.8 13.04652 13.8 12 13.8 10.95348 13.494 9.98448 12.984 9.20928L 9.72 12M 21.96 12C 21.96 8.86044 21.0488 5.96119 19.512 3.62784L 17.88 5.0232C 19.1584 6.9612 19.92 9.37982 19.92 12 19.92 14.62018 19.1584 17.0388 17.88 18.9768L 19.512 20.37216C 21.0488 18.03881 21.96 15.13956 21.96 12M 17.88 12C 17.88 9.90696 17.2748 7.97671 16.248 6.41856L 14.616 7.81392C 15.3844 8.97672 15.84 10.42634 15.84 12 15.84 13.57366 15.3844 15.02328 14.616 16.18608L 16.248 17.58144C 17.2748 16.02329 17.88 14.09304 17.88 12Z"
+      fill="url(#wave)"
+      />
+
+</svg>
