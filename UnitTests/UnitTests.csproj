@@ -50,8 +50,8 @@
     <PackageReference Include="MSTest.TestFramework" Version="4.5.1" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Server\Server.csproj" />
-    <ProjectReference Include="..\Utils\Utils.csproj" />
+    <ProjectReference Include="..\external\win-boo-lib\Server\Server.csproj" />
+    <ProjectReference Include="..\external\win-boo-lib\Utils\Utils.csproj" />
   </ItemGroup>
 
   <!-- 

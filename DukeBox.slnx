@@ -1,4 +1,4 @@
-<Solution>
+﻿<Solution>
   <Configurations>
     <Platform Name="ARM64" />
     <Platform Name="x64" />
@@ -10,12 +10,12 @@
     <Platform Solution="*|x86" Project="x86" />
     <Deploy />
   </Project>
-  <Project Path="Server/Server.csproj" />
+  <Project Path="external/win-boo-lib/Server/Server.csproj" />
   <Project Path="UnitTests/UnitTests.csproj">
     <Platform Solution="*|ARM64" Project="ARM64" />
     <Platform Solution="*|x64" Project="x64" />
     <Platform Solution="*|x86" Project="x86" />
     <Deploy />
   </Project>
-  <Project Path="Utils/Utils.csproj" />
+  <Project Path="external/win-boo-lib/Utils/Utils.csproj" />
 </Solution>
