@@ -129,8 +129,11 @@ public class EntryPageViewModel {
         _pageService = pageService;
 
         PageLabel = appConfigService.AppName;
+#if DEBUG
+        AppVersion = appConfigService.AppVersion.ToString() + " (DBG)";
+#else
         AppVersion = appConfigService.AppVersion.ToString();
-
+#endif
         // Channels
         Channels.Clear();
         Channels.Add(new CategoryEntry() { Id = 0, Name = "Default" });

@@ -282,7 +282,7 @@
                                     SortMemberPath="ComplementalRating" CanSort="True">
                                     <tv:TableViewTemplateColumn.CellTemplate>
                                         <DataTemplate x:DataType="model:IMediaFile">
-                                            <TextBlock Text="{x:Bind Rating}" HorizontalAlignment="Center"/>
+                                            <TextBlock Text="{x:Bind ComplementalRating}" HorizontalAlignment="Center"/>
                                         </DataTemplate>
                                     </tv:TableViewTemplateColumn.CellTemplate>
                                 </tv:TableViewTemplateColumn>
