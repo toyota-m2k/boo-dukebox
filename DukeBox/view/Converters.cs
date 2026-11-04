@@ -1,4 +1,5 @@
-﻿using io.github.toyota32k.BooLib.Utils;
+﻿using DukeBox.model;
+using io.github.toyota32k.BooLib.Utils;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
@@ -331,4 +332,19 @@ public class RatingToGeometryConverter : IValueConverter {
         return Microsoft.UI.Xaml.Markup.XamlBindingHelper.ConvertValue(typeof(Geometry), data);
     }
     public object ConvertBack(object value, Type t, object p, string l) => throw new NotSupportedException();
+}
+
+public class MarkToGlyphConverter : IValueConverter {
+    public object Convert(object value, Type t, object p, string l) {
+        var data = (value is int mark ? mark: 0) switch {
+            0 => "",
+            1 => "\uE734",
+            2 => "\uE81B",
+            3 => "\uEB51",
+            _ => "",
+        };
+        return data;
+    }
+    public object ConvertBack(object value, Type t, object p, string l) => throw new NotSupportedException();
+
 }

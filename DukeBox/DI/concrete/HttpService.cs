@@ -126,13 +126,13 @@ public class HttpService : IHttpService {
                     var cap = new Dictionary<string,object> {
                         {"cmd", "capability"},
                         {"serverName", "DukeBox"},
-                        {"version", 2},
+                        {"version", 3},
                         {"root", "/" },
-                        {"category", true},
-                        {"rating", false},
-                        {"mark", false},
+                        {"category", 1},
+                        {"rating", 2},
+                        {"mark", 2},
                         {"chapter", true},
-                        {"reputation", 0 },             // reputation (category/mark/rating) コマンド対応 1:RO /2:RW
+                        {"reputation", 2 },             // v3では使わないが下位互換のために。reputation (category/mark/rating) コマンド対応 1:RO /2:RW
                         {"diff", false},                // date以降の更新チェック(check)、差分リスト取得に対応
                         {"sync", false },               // 端末間同期
                         {"acceptRequest", false },        // register command をサポートする
@@ -147,7 +147,8 @@ public class HttpService : IHttpService {
                 name: "categories",
                 regex: @"/categories",
                 process: (request) => {
-                    var list = DBService.CategoryStore.List().Select(it=> new Dictionary<string, object>(){
+                    List<ICategory> categories = [CategoryEntry.DEFAULT, .. DBService.CategoryStore.List()];
+                    var list = categories.Select(it=> new Dictionary<string, object>(){
                         {"label", it.Name},
                         {"color", $"{it.Color}"},
                         {"sort", $"{it.SortOrder}"},
@@ -156,6 +157,39 @@ public class HttpService : IHttpService {
                     var dic = new Dictionary<string, object>(){
                         { "cmd", "categories"},
                         {"categories", list},
+                    };
+                    return TextHttpResponse.FromJson(request, dic);
+                }),
+
+            Route.get(
+                name: "marks",
+                regex: @"/marks",
+                process: (request) => {
+                    var list = Mark.List.Select(it=>new Dictionary<string, object> {
+                        {"mark", it.mark },
+                        {"label",it.label},
+                        {"svg", it.svgPath },
+                    }).ToList();
+                    var dic = new Dictionary<string, object>() {
+                        {"cmd", "marks"},
+                        {"marks", list }
+                    };
+                    return TextHttpResponse.FromJson(request, dic);
+                }),
+
+            Route.get(
+                name: "ratings",
+                regex: @"/ratings",
+                process: (request)=> {
+                    var list = Rating.List.Select(it=>new Dictionary<string,object> {
+                        {"rating", it.rating},
+                        {"label",it.label},
+                        {"svg", it.svgPath },
+                    }).ToList();
+                    var dic = new Dictionary<string,object>() {
+                        {"cmd", "ratings"},
+                        {"default", 3 },
+                        {"ratings", list }
                     };
                     return TextHttpResponse.FromJson(request, dic);
                 }),
@@ -203,12 +237,12 @@ public class HttpService : IHttpService {
                             }
                         }
                         if (!string.IsNullOrWhiteSpace(category)) {
-                            if (!it.Category.Equals(category)) {
+                            if (!it.ComplementalCategoryName.Equals(category)) {
                                 return false;
                             }
                         }
                         if (rating!=0) {
-                            if (it.Rating>=rating || (it.Rating==0 && rating<4)) {
+                            if (it.ComplementalRating<rating) {
                                 return false;
                             }
                         }

@@ -277,11 +277,23 @@
                                     Width="85"
                                     IsReadOnly="True"/>
 
+                                <!-- Rating -->
                                 <tv:TableViewTemplateColumn Header="Rating" Width="50"
                                     SortMemberPath="ComplementalRating" CanSort="True">
                                     <tv:TableViewTemplateColumn.CellTemplate>
                                         <DataTemplate x:DataType="model:IMediaFile">
                                             <TextBlock Text="{x:Bind Rating}" HorizontalAlignment="Center"/>
+                                        </DataTemplate>
+                                    </tv:TableViewTemplateColumn.CellTemplate>
+                                </tv:TableViewTemplateColumn>
+
+                                <!-- Mark -->
+                                <tv:TableViewTemplateColumn Header="Mark" Width="50"
+                                    SortMemberPath="Mark" CanSort="True">
+                                    <tv:TableViewTemplateColumn.CellTemplate>
+                                        <DataTemplate x:DataType="model:IMediaFile">
+                                            <FontIcon Glyph="{x:Bind Mark, Converter={StaticResource MarkToGlyphConverter}}" FontSize="16"
+                                                      Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
                                         </DataTemplate>
                                     </tv:TableViewTemplateColumn.CellTemplate>
                                 </tv:TableViewTemplateColumn>
