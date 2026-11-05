@@ -285,6 +285,12 @@
                                             <TextBlock Text="{x:Bind ComplementalRating}" HorizontalAlignment="Center"/>
                                         </DataTemplate>
                                     </tv:TableViewTemplateColumn.CellTemplate>
+                                    <tv:TableViewTemplateColumn.EditingTemplate>
+                                        <DataTemplate x:DataType="model:IMediaFile">
+                                            <!-- BeginningEditイベントを発行させるため、EditingTemplateを置いておく -->
+                                            <TextBlock Text="{x:Bind ComplementalRating}" HorizontalAlignment="Center"/>
+                                        </DataTemplate>
+                                    </tv:TableViewTemplateColumn.EditingTemplate>
                                 </tv:TableViewTemplateColumn>
 
                                 <!-- Mark -->
@@ -296,6 +302,13 @@
                                                       Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
                                         </DataTemplate>
                                     </tv:TableViewTemplateColumn.CellTemplate>
+                                    <tv:TableViewTemplateColumn.EditingTemplate>
+                                        <DataTemplate x:DataType="model:IMediaFile">
+                                            <!-- BeginningEditイベントを発行させるため、EditingTemplateを置いておく -->
+                                            <FontIcon Glyph="{x:Bind Mark, Converter={StaticResource MarkToGlyphConverter}}" FontSize="16"
+                                                      Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
+                                        </DataTemplate>
+                                    </tv:TableViewTemplateColumn.EditingTemplate>
                                 </tv:TableViewTemplateColumn>
 
                                 <!-- Path: 編集不可 -->

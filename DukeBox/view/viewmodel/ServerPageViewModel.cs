@@ -12,6 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 
 namespace DukeBox.view.viewmodel;
 
@@ -22,6 +23,7 @@ public class ServerPageViewModel: IMediaListSource {
     private readonly IPageService _pageService;
     private readonly IDBService _dBService;
     private readonly ISettingsService _settingsService;
+    private readonly IDialogService _dialogService;
 
     public ReactiveCommand StopServerCommand = new ReactiveCommand();
     public ReactiveCommand ShowQRCodeCommand = new ReactiveCommand();
@@ -84,13 +86,16 @@ public class ServerPageViewModel: IMediaListSource {
         IListingFileService listingFileService, 
         IPageService pageService, 
         IDBService dBService,
-        ISettingsService settings
+        ISettingsService settings,
+        IDialogService dialogService
+
         ) {
         _httpService = httpService;
         _listingFileService = listingFileService;
         _pageService = pageService;
         _dBService = dBService;
         _settingsService = settings;
+        _dialogService = dialogService;
 
         StopServerCommand.Subscribe(StopServer);
         ShowQRCodeCommand.Subscribe(ShowQRCode);
@@ -175,6 +180,24 @@ public class ServerPageViewModel: IMediaListSource {
             return true;
         });
     }
+
+    public async Task EditItemProps(IMediaFile? file) {
+        if (file == null) {
+            Logger.Warn("EditItemProps: file is null.");
+            return;
+        }
+        await ItemPropertyDialog.EditItemProps(_dialogService, _dBService, file);
+        //var orgName = file.Name;
+        //var newName = await _dialogService.ShowInputText("Name", defaultText: orgName);
+        //if (!string.IsNullOrEmpty(newName) && newName != orgName) {
+        //    Logger.Debug($"Name changed: {orgName} -> {newName}");
+        //    _dBService.EditMediaFileStore(store => {
+        //        store.Update(file, name: newName);
+        //        return true;
+        //    });
+        //}
+    }
+
 
     private string ComputeFingerprintIfPossible() {
         if (!_settingsService.EnableSSL) return "";

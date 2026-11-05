@@ -28,6 +28,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Remove="view\GenerateCertDialog.xaml" />
+    <None Remove="view\ItemPropertyDialog.xaml" />
     <None Remove="view\LogView.xaml" />
     <None Remove="view\ParingQRCodeDialog.xaml" />
     <None Remove="view\ServerPage.xaml" />
@@ -67,6 +68,11 @@
   <ItemGroup>
     <ProjectReference Include="..\external\win-boo-lib\Server\Server.csproj" />
     <ProjectReference Include="..\external\win-boo-lib\Utils\Utils.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="view\ItemPropertyDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="view\ParingQRCodeDialog.xaml">

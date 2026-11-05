@@ -1,0 +1,139 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentDialog
+    x:Class="DukeBox.view.ItemPropertyDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:DukeBox.view"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <StackPanel Orientation="Vertical">
+        <StackPanel.Resources>
+            <Style x:Key="FilterGroupStyle" TargetType="Border">
+                <Setter Property="Background" Value="{ThemeResource LayerFillColorDefaultBrush}"/>
+                <Setter Property="BorderBrush" Value="{ThemeResource ControlStrokeColorDefaultBrush}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="CornerRadius" Value="6"/>
+                <Setter Property="Padding" Value="8,2,4,2"/>
+            </Style>
+            <!-- RadioButton を ToggleButton 風（矩形＋背景色で on/off）に表示するスタイル -->
+            <Style x:Key="ToggleRadioButtonStyle" TargetType="RadioButton">
+                <Setter Property="Width" Value="28"/>
+                <Setter Property="Height" Value="28"/>
+                <Setter Property="MinWidth" Value="0"/>
+                <Setter Property="Padding" Value="0"/>
+                <Setter Property="Margin" Value="0,0,2,0"/>
+                <Setter Property="CornerRadius" Value="4"/>
+                <Setter Property="Background" Value="{ThemeResource ToggleButtonBackground}"/>
+                <Setter Property="Foreground" Value="{ThemeResource ToggleButtonForeground}"/>
+                <Setter Property="BorderBrush" Value="{ThemeResource ToggleButtonBorderBrush}"/>
+                <Setter Property="BorderThickness" Value="{ThemeResource ToggleButtonBorderThemeThickness}"/>
+                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="RadioButton">
+                            <Grid x:Name="RootGrid"
+                                  Background="{TemplateBinding Background}"
+                                  BorderBrush="{TemplateBinding BorderBrush}"
+                                  BorderThickness="{TemplateBinding BorderThickness}"
+                                  CornerRadius="{TemplateBinding CornerRadius}">
+                                <Border x:Name="CheckedOverlay" Visibility="Collapsed"
+                                        Background="{ThemeResource ToggleButtonBackgroundChecked}"
+                                        CornerRadius="{TemplateBinding CornerRadius}"/>
+                                <Border x:Name="HoverOverlay" Visibility="Collapsed"
+                                        Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                        CornerRadius="{TemplateBinding CornerRadius}"/>
+                                <ContentPresenter x:Name="ContentPresenter"
+                                                  Content="{TemplateBinding Content}"
+                                                  ContentTemplate="{TemplateBinding ContentTemplate}"
+                                                  Padding="{TemplateBinding Padding}"
+                                                  Foreground="{TemplateBinding Foreground}"
+                                                  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup x:Name="CommonStates">
+                                        <VisualState x:Name="Normal"/>
+                                        <VisualState x:Name="PointerOver">
+                                            <VisualState.Setters>
+                                                <Setter Target="HoverOverlay.Visibility" Value="Visible"/>
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="Pressed">
+                                            <VisualState.Setters>
+                                                <Setter Target="HoverOverlay.Visibility" Value="Visible"/>
+                                                <Setter Target="RootGrid.Opacity" Value="0.8"/>
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="Disabled">
+                                            <VisualState.Setters>
+                                                <Setter Target="RootGrid.Opacity" Value="0.4"/>
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                    <VisualStateGroup x:Name="CheckStates">
+                                        <VisualState x:Name="Checked">
+                                            <VisualState.Setters>
+                                                <Setter Target="CheckedOverlay.Visibility" Value="Visible"/>
+                                                <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource ToggleButtonForegroundChecked}"/>
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="Unchecked"/>
+                                        <VisualState x:Name="Indeterminate"/>
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </StackPanel.Resources>
+        <TextBlock Text="Item Name"/>
+        <TextBox x:Name="NameBox" Text="{x:Bind ViewModel.Name.Value, Mode=TwoWay}" Margin="0,4,0,0"/>
+
+        <!-- Rating -->
+        <TextBlock Text="Rating"/>
+        <Border Style="{StaticResource FilterGroupStyle}" VerticalAlignment="Center">
+            <RadioButtons MaxColumns="5"
+                          SelectedIndex="{x:Bind local:ItemPropertyDialog.RatingToIndex(ViewModel.Rating.Value), BindBack=SetRatingIndex, Mode=TwoWay}">
+                <RadioButton Style="{StaticResource ToggleRadioButtonStyle}">
+                    <FontIcon Glyph="&#xF146;" FontSize="13"/>
+                </RadioButton>
+                <RadioButton Style="{StaticResource ToggleRadioButtonStyle}">
+                    <FontIcon Glyph="&#xF147;" FontSize="13"/>
+                </RadioButton>
+                <RadioButton Style="{StaticResource ToggleRadioButtonStyle}">
+                    <FontIcon Glyph="&#xF148;" FontSize="13"/>
+                </RadioButton>
+                <RadioButton Style="{StaticResource ToggleRadioButtonStyle}">
+                    <FontIcon Glyph="&#xF149;" FontSize="13"/>
+                </RadioButton>
+                <RadioButton Style="{StaticResource ToggleRadioButtonStyle}">
+                    <FontIcon Glyph="&#xF14A;" FontSize="13"/>
+                </RadioButton>
+            </RadioButtons>
+        </Border>
+
+        <!-- Mark -->
+        <TextBlock Text="Mark"/>
+        <Border Style="{StaticResource FilterGroupStyle}" VerticalAlignment="Center">
+            <RadioButtons MaxColumns="4"
+                          SelectedIndex="{x:Bind ViewModel.Mark.Value, Mode=TwoWay}">
+                <RadioButton Style="{StaticResource ToggleRadioButtonStyle}">
+                    <FontIcon Glyph="&#xE739;" FontSize="13"/>
+                </RadioButton>
+                <RadioButton Style="{StaticResource ToggleRadioButtonStyle}">
+                    <FontIcon Glyph="&#xE734;" FontSize="13"/>
+                </RadioButton>
+                <RadioButton Style="{StaticResource ToggleRadioButtonStyle}">
+                    <FontIcon Glyph="&#xE81B;" FontSize="13"/>
+                </RadioButton>
+                <RadioButton Style="{StaticResource ToggleRadioButtonStyle}">
+                    <FontIcon Glyph="&#xEB51;" FontSize="13"/>
+                </RadioButton>
+            </RadioButtons>
+        </Border>
+
+    </StackPanel>
+</ContentDialog>

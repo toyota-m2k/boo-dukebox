@@ -16,8 +16,13 @@ class DialogBuilder : IDialogBuilder {
 
     DialogType _dialogType = DialogType.Custom;
 
-    ContentDialog Dialog = new ContentDialog();
-    public DialogBuilder(XamlRoot xamlRoot) {
+    ContentDialog Dialog;
+    //public DialogBuilder(XamlRoot xamlRoot) {
+    //    Dialog =  new ContentDialog();
+    //    Dialog.XamlRoot = xamlRoot;
+    //}
+    public DialogBuilder(XamlRoot xamlRoot, ContentDialog dlg) {
+        Dialog = dlg;
         Dialog.XamlRoot = xamlRoot;
     }
 
@@ -109,13 +114,14 @@ public class DialogService : IDialogService {
         _pageService = pageService;
     }
 
-    public IDialogBuilder Builder() {
-        return new DialogBuilder(_xamlRoot);
+    public IDialogBuilder Builder(ContentDialog? dlg=null) {
+        dlg = dlg ?? new ContentDialog();
+        return new DialogBuilder(_xamlRoot, dlg);
     }
 
     public async Task ShowMessage(string title, string message) {
         var textBox = new TextBlock { Text = message, TextWrapping = TextWrapping.Wrap };
-        await Builder()
+        await Builder(null)
             .Title(title)
             .Content(textBox)
             .ShowConfirm();

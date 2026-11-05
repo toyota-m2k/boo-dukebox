@@ -30,7 +30,7 @@ public interface IDialogBuilder {
 }
 
 public interface IDialogService {
-    IDialogBuilder Builder();
+    IDialogBuilder Builder(ContentDialog? dlg=null);
 
     // MessageBox
     Task ShowMessage(string title, string message);

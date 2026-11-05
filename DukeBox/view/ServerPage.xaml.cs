@@ -1,6 +1,7 @@
 using DukeBox.DI.contract;
 using DukeBox.model;
 using DukeBox.view.viewmodel;
+using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml.Controls;
 using System.Collections.Generic;
 using System.Linq;
@@ -59,9 +60,9 @@ public sealed partial class ServerPage : Page, INavigationAware {
     }
 
     private void OnBeginningEdit(object sender, WinUI.TableView.TableViewBeginningEditEventArgs e) {
-        ViewModel.Logger.Debug($"{e.Cell.Name} - {(e.DataItem as IMediaFile)?.Name ?? "null"}");
-
+        ViewModel.Logger.Debug($"{e.Column.Header} - {(e.DataItem as IMediaFile)?.Name ?? "null"}");
         e.Cancel = true;
+        _ = ViewModel.EditItemProps(e.DataItem as IMediaFile);
     }
 
     private IList<IMediaFile> GetDisplayedList(bool onlySelected) {
