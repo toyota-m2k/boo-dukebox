@@ -1,12 +1,8 @@
 ﻿using DukeBox.model;
-using io.github.toyota32k.BooLib.Utils;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Globalization;
 using System.Text.RegularExpressions;
 
 namespace DukeBox.DB;
@@ -117,6 +113,8 @@ public class FileEntry : IMediaFile {
 
     [NotMapped]
     public int ComplementalRating => (Rating==0) ? 3 : Math.Clamp(Rating, 1, 5);
+    [NotMapped]
+    public string ComplementalCategoryName => CategoryRef?.Name ?? CategoryEntry.DEFAULT.Name;
 
     public FileEntry Modify(string? name = null, long? size = null, long? duration = null, bool? converted= null, long? lastModified = null,
         bool? deleted = null, int? rating = null, int? mark = null, string? label = null, long? category = null, string? chapters = null)

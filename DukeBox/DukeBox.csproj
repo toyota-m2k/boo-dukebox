@@ -28,6 +28,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Remove="view\GenerateCertDialog.xaml" />
+    <None Remove="view\ItemPropertyDialog.xaml" />
     <None Remove="view\LogView.xaml" />
     <None Remove="view\ParingQRCodeDialog.xaml" />
     <None Remove="view\ServerPage.xaml" />
@@ -54,7 +55,6 @@
     <ProjectCapability Include="Msix" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="FFMpegCore" Version="5.5.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.14" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.14" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2957" />
@@ -65,8 +65,14 @@
     <PackageReference Include="WinUI.TableView" Version="1.5.1" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Server\Server.csproj" />
-    <ProjectReference Include="..\Utils\Utils.csproj" />
+    <ProjectReference Include="..\external\win-boo-lib\Server\Server.csproj" />
+    <ProjectReference Include="..\external\win-boo-lib\Utils\Utils.csproj" />
+    <ProjectReference Include="..\external\win-boo-lib\Media\Media.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="view\ItemPropertyDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="view\ParingQRCodeDialog.xaml">

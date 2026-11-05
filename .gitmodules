@@ -1,0 +1,3 @@
+[submodule "external/win-boo-lib"]
+	path = external/win-boo-lib
+	url = https://github.com/toyota-m2k/win-boo-lib

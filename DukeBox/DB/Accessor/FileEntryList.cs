@@ -1,16 +1,11 @@
-﻿using DukeBox.DI.contract;
-using DukeBox.model;
+﻿using DukeBox.model;
 using io.github.toyota32k.BooLib.Utils;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
 using System.IO;
 using System.Linq;
 using System.Reactive.Subjects;
-using Windows.ApplicationModel.Store;
 
 namespace DukeBox.DB.Accessor;
 
@@ -111,17 +106,17 @@ public class FileEntryList : IMutableMediaFileStore {
         return Enumerable(tracking).ToList();
     }
 
-    public IMediaFile AddOrUpdate(string path, string name, long size, string type, long duration = 0L, bool converted = false,
+    public IMediaFile AddOrUpdate(string path, string name, long size, string type, DateTimeOffset mediaCreationDate, long duration = 0L, bool converted = false,
         int rating = 0, int mark = 0, string label = "", long category = 0, string chapters = "") {
         var entry = GetByPath(path);
         if (entry != null) {
             return Update(entry, name, size, duration, converted, rating, mark, label, category, chapters);
         } else {
-            return Add(path, name, size, type, duration, converted, rating, mark, label, category, chapters);
+            return Add(path, name, size, type, mediaCreationDate, duration, converted, rating, mark, label, category, chapters);
         }
     }
     
-    public IMediaFile Add(string path, string name, long size, string type, long duration=0L, bool converted=false,
+    public IMediaFile Add(string path, string name, long size, string type, DateTimeOffset mediaCreationDate, long duration=0L, bool converted=false,
         int rating=0, int mark=0, string label="", long category=0, string chapters="") {
         if(GetByPath(path) != null) {
             throw new ArgumentException($"already exists: {path}");
@@ -136,7 +131,7 @@ public class FileEntryList : IMutableMediaFileStore {
         }
 
         long now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-        long creation = new DateTimeOffset(info.CreationTimeUtc).ToUnixTimeMilliseconds();
+        //long creation = new DateTimeOffset(info.CreationTimeUtc).ToUnixTimeMilliseconds();
         long lastModified = new DateTimeOffset(info.LastWriteTimeUtc).ToUnixTimeMilliseconds();
 
         FileEntry entry;
@@ -148,7 +143,7 @@ public class FileEntryList : IMutableMediaFileStore {
                 Duration=duration, 
                 Type = typeValue,
                 Converted = converted,
-                CreationDate = creation,
+                CreationDate = mediaCreationDate.ToUnixTimeMilliseconds(),
                 LastModifiedDate = lastModified,
                 RegisteredDate = now,
                 Rating = rating,
@@ -178,7 +173,7 @@ public class FileEntryList : IMutableMediaFileStore {
         if (!info.Exists) {
             throw new FileNotFoundException("File not found.", entry.Path);
         }
-        long lastModified = new DateTimeOffset(info.LastWriteTimeUtc).ToUnixTimeSeconds();
+        long lastModified = new DateTimeOffset(info.LastWriteTimeUtc).ToUnixTimeMilliseconds();
 
         FileEntry modified;
         lock (_connector) {
@@ -236,11 +231,11 @@ public class FileEntryList : IMutableMediaFileStore {
             _entries.RemoveRange(list);
         }
         foreach (var entry in list) {
-            //if (entry.Converted) {    ゴミがあるかもしれないので、Convertedフラグに関係なく削除を試行する。
-            // コンバートされたファイルが存在する場合は削除する
-            var converted = GetConvertedFilePath(convertedSourcePath, entry);
-            FileUtil.SafeDelete(converted);
-            //}
+            if (entry.Converted) {
+                // コンバートされたファイルが存在する場合は削除する
+                var converted = GetConvertedFilePath(convertedSourcePath, entry);
+                FileUtil.SafeDelete(converted);
+            }
             _changeInfoQueue.Enqueue(DataChangeInfo.Remove(entry));
         }
     }

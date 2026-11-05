@@ -332,3 +332,18 @@ public class RatingToGeometryConverter : IValueConverter {
     }
     public object ConvertBack(object value, Type t, object p, string l) => throw new NotSupportedException();
 }
+
+public class MarkToGlyphConverter : IValueConverter {
+    public object Convert(object value, Type t, object p, string l) {
+        var data = (value is int mark ? mark: 0) switch {
+            0 => "",
+            1 => "\uE734",
+            2 => "\uE81B",
+            3 => "\uEB51",
+            _ => "",
+        };
+        return data;
+    }
+    public object ConvertBack(object value, Type t, object p, string l) => throw new NotSupportedException();
+
+}

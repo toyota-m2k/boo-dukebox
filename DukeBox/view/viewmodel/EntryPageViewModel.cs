@@ -1,20 +1,15 @@
 ﻿using DukeBox.DB;
-using DukeBox.DI.concrete;
 using DukeBox.DI.contract;
 using DukeBox.model;
 using io.github.toyota32k.BooLib.Utils;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml.Controls;
 using Reactive.Bindings;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace DukeBox.view.viewmodel;
@@ -129,8 +124,11 @@ public class EntryPageViewModel {
         _pageService = pageService;
 
         PageLabel = appConfigService.AppName;
+#if DEBUG
+        AppVersion = appConfigService.AppVersion.ToString() + " (DBG)";
+#else
         AppVersion = appConfigService.AppVersion.ToString();
-
+#endif
         // Channels
         Channels.Clear();
         Channels.Add(new CategoryEntry() { Id = 0, Name = "Default" });

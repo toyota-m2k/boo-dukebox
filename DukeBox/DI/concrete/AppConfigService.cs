@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Reflection;
 using System.IO;
 using Windows.ApplicationModel;
-using Windows.ApplicationModel.Core;
 using Windows.Storage;
 using io.github.toyota32k.BooLib.Utils;
 using System;

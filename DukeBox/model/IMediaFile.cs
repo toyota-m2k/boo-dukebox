@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Net.Http.Headers;
-using System.Text;
-
-namespace DukeBox.model; 
+﻿namespace DukeBox.model; 
 public interface IMediaFile {
     public long Id { get; }
     public string Name { get; }
@@ -31,6 +25,7 @@ public interface IMediaFile {
     public string BooMediaType { get; }                     // Boo ProtocolのMediaTypeを返す。動画なら"v"、画像なら"p"、音声なら"a"、それ以外は""を返す。
     public string ContentType { get; }                      // MIMEタイプ（Content-Type）を返す。mp4ならvideo/mp4、pngならimage/png、jpg/jpegならimage/jpeg、mp3/m4aならaudio/mpeg
     public int ComplementalRating { get; }                  // Rating == 0 （デフォルト）を 3 として扱うプロパティ
+    public string ComplementalCategoryName { get; }
     /**
      * 変更可能なプロパティを変更した新しいIMediaFileインスタンスを返す。
      * 変更しない項目は null （デフォルト引数）を指定する。

@@ -1,7 +1,5 @@
 ﻿using Microsoft.UI.Xaml.Controls;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace DukeBox.DI.contract;
@@ -32,7 +30,7 @@ public interface IDialogBuilder {
 }
 
 public interface IDialogService {
-    IDialogBuilder Builder();
+    IDialogBuilder Builder(ContentDialog? dlg=null);
 
     // MessageBox
     Task ShowMessage(string title, string message);

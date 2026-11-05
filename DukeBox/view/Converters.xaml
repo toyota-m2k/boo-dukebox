@@ -22,4 +22,5 @@
     <common:UnixMsToDateStringConverter x:Key="UnixMsToDateStringConverter"/>
     <common:MediaTypeToGlyphConverter x:Key="MediaTypeToGlyphConverter"/>
     <common:RatingToGeometryConverter x:Key="RatingToGeometryConverter"/>
+    <common:MarkToGlyphConverter x:Key="MarkToGlyphConverter"/>
 </ResourceDictionary>
