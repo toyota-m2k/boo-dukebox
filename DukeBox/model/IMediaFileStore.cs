@@ -21,9 +21,9 @@ public interface IMediaFileStore {
 }
 
 public interface IMutableMediaFileStore : IMediaFileStore {
-    IMediaFile AddOrUpdate(string path, string name, long size, string type, long duration = 0L, bool converted = false,
+    IMediaFile AddOrUpdate(string path, string name, long size, string type, DateTimeOffset mediaCreationDate, long duration = 0L, bool converted = false,
         int rating = 0, int mark = 0, string label = "", long category = 0, string chapters = "");
-    IMediaFile Add(string path, string name, long size, string type, long duration = 0L, bool converted = false,
+    IMediaFile Add(string path, string name, long size, string type, DateTimeOffset mediaCreationDate, long duration = 0L, bool converted = false,
         int rating = 0, int mark = 0, string label = "", long category = 0, string chapters = "");
 
     IMediaFile Update(IMediaFile entry, string? name = null, long? size = null, long? duration = null, bool? converted = null,

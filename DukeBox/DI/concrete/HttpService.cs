@@ -605,7 +605,7 @@ public class HttpService : IHttpService {
             _dbService = dbService;
         }
         public IList<IMediaFile> GetMediaList(MediaListMode mode) {
-            return ExternalMediaListSource?.GetMediaList(mode) ?? _dbService.MediaFileStore.List();
+            return ExternalMediaListSource?.GetMediaList(mode) ?? _dbService.MediaFileStore.Enumerable().OrderBy(it=>it.CreationDate).ToList();
         }
     }
     private MediaListSourceWrapper _mediaListSource;

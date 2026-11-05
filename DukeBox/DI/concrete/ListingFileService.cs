@@ -100,8 +100,10 @@ public class ListingFileService : IListingFileService {
                         Logger.Info($"{appended.Count} new files found in {scanner.DirectoryPath}");
                         foreach (var file in appended) {
                             await DBService.EditMediaFileStore(async store => {
-                                var duration = (await MediaUtil.GetDurationAsync(file.FullName))?.TotalMilliseconds ?? 0;
-                                store.AddOrUpdate(file.FullName, Path.GetFileNameWithoutExtension(file.Name), file.Length, file.Extension, (long)Math.Round(duration), category: scanner.Category);
+                                var meta = await MediaMetaDataRetriever.FromPathAsync(file.FullName);
+                                var duration = meta.Duration.TotalMilliseconds;
+                                var mediaCreationDate = meta.CreationDate;
+                                store.AddOrUpdate(file.FullName, Path.GetFileNameWithoutExtension(file.Name), file.Length, file.Extension, mediaCreationDate, (long)Math.Round(duration), category: scanner.Category);
                                 return true;    // updated
                             });
                             if (ct.IsCancellationRequested) {
