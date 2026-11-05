@@ -7,20 +7,16 @@ using io.github.toyota32k.BooLib.Server.http.response;
 using io.github.toyota32k.BooLib.Server.mdns;
 using io.github.toyota32k.BooLib.Utils;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Reactive.Bindings;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace DukeBox.DI.concrete;
 

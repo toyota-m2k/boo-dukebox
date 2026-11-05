@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Net.Http.Headers;
-using System.Text;
-
-namespace DukeBox.model; 
+﻿namespace DukeBox.model; 
 public interface IMediaFile {
     public long Id { get; }
     public string Name { get; }

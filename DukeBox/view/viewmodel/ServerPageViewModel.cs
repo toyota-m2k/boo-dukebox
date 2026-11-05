@@ -1,5 +1,4 @@
 ﻿using DukeBox.DB;
-using DukeBox.DI.concrete;
 using DukeBox.DI.contract;
 using DukeBox.model;
 using io.github.toyota32k.BooLib.Server.mdns;
@@ -11,10 +10,8 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net.Http.Headers;
 using System.Reactive.Linq;
 using System.Security.Cryptography.X509Certificates;
-using System.Text;
 
 namespace DukeBox.view.viewmodel;
 

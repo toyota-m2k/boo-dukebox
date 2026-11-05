@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace DukeBox.scanner.ffmpeg;
+﻿namespace DukeBox.scanner.ffmpeg;
 
 public enum GGProcessId {
     NONE,

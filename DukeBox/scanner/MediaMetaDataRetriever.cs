@@ -1,10 +1,8 @@
 ﻿using DukeBox.scanner.ffmpeg;
 using io.github.toyota32k.BooLib.Utils;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Windows.Media.Editing;

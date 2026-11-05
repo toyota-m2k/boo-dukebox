@@ -1,5 +1,4 @@
-﻿using DukeBox.model;
-using io.github.toyota32k.BooLib.Utils;
+﻿using io.github.toyota32k.BooLib.Utils;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;

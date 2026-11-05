@@ -1,16 +1,11 @@
-﻿using DukeBox.DI.contract;
-using DukeBox.model;
+﻿using DukeBox.model;
 using io.github.toyota32k.BooLib.Utils;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
 using System.IO;
 using System.Linq;
 using System.Reactive.Subjects;
-using Windows.ApplicationModel.Store;
 
 namespace DukeBox.DB.Accessor;
 

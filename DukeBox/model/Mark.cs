@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace DukeBox.model;
+﻿namespace DukeBox.model;
 
 public class Mark {
     public int mark;

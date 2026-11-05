@@ -4,9 +4,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using Reactive.Bindings;
 using System;
-using System.Collections.Generic;
 using System.Reactive.Linq;
-using System.Text;
 
 namespace DukeBox.DI.concrete; 
 public class PageService : IPageService {

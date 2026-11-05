@@ -1,9 +1,6 @@
 ﻿using DukeBox.model;
 using Reactive.Bindings;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace DukeBox.DI.contract; 

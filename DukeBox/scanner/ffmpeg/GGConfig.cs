@@ -1,7 +1,5 @@
 ﻿using FFMpegCore;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace DukeBox.scanner.ffmpeg; 
 public static class GGConfig {
