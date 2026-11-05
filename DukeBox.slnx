@@ -18,4 +18,5 @@
     <Deploy />
   </Project>
   <Project Path="external/win-boo-lib/Utils/Utils.csproj" />
+  <Project Path="external/win-boo-lib/Media/Media.csproj" />
 </Solution>

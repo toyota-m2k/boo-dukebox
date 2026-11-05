@@ -1,4 +1,4 @@
-﻿using DukeBox.scanner.ffmpeg;
+﻿using io.github.toyota32k.BooLib.Media;
 using io.github.toyota32k.BooLib.Utils;
 using System;
 using System.Globalization;
@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Windows.Media.Editing;
 using Windows.Storage;
-using static DukeBox.scanner.ffmpeg.GGAnalyzer;
+using static io.github.toyota32k.BooLib.Media.GGAnalyzer;
 
 namespace DukeBox.scanner; 
 
