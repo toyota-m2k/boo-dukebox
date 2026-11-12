@@ -1,8 +1,8 @@
 ﻿using DukeBox.model;
-using Newtonsoft.Json;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 
 namespace DukeBox.DB;
@@ -71,7 +71,7 @@ public class FileEntry : IMediaFile {
     [NotMapped]
     public string BooMediaType {
         get {
-            switch(Type) {
+            switch (Type) {
                 case "mp4":
                     return "v";
                 case "png":
@@ -91,7 +91,7 @@ public class FileEntry : IMediaFile {
     [NotMapped]
     public string ContentType {
         get {
-            switch(Type) {
+            switch (Type) {
                 case "mp4":
                     return "video/mp4";
                 case "png":
@@ -112,22 +112,21 @@ public class FileEntry : IMediaFile {
     //public string FilePath => string.IsNullOrEmpty(CopyPath) ? Path : CopyPath;
 
     [NotMapped]
-    public int ComplementalRating => (Rating==0) ? 3 : Math.Clamp(Rating, 1, 5);
+    public int ComplementalRating => (Rating == 0) ? 3 : Math.Clamp(Rating, 1, 5);
     [NotMapped]
     public string ComplementalCategoryName => CategoryRef?.Name ?? CategoryEntry.DEFAULT.Name;
 
-    public FileEntry Modify(string? name = null, long? size = null, long? duration = null, bool? converted= null, long? lastModified = null,
-        bool? deleted = null, int? rating = null, int? mark = null, string? label = null, long? category = null, string? chapters = null)
-    {
+    public FileEntry Modify(string? name = null, long? size = null, long? duration = null, bool? converted = null, long? lastModified = null,
+        bool? deleted = null, int? rating = null, int? mark = null, string? label = null, long? category = null, string? chapters = null) {
         var src = this;
         long? categoryResolved = null;
-        if (category!=null) {
+        if (category != null) {
             categoryResolved = category == 0 ? null : category;
         }
         else {
             categoryResolved = src.Category;
         }
-        return new FileEntry() { 
+        return new FileEntry() {
             Id = src.Id,
             Name = name ?? src.Name,
             Size = size ?? src.Size,
@@ -232,7 +231,7 @@ public class FileEntry : IMediaFile {
     //    }
     //}
 
-    IMediaFile IMediaFile.Modify(string? name, long? size, long? duration, bool? converted, long? lastModified, 
+    IMediaFile IMediaFile.Modify(string? name, long? size, long? duration, bool? converted, long? lastModified,
         bool? deleted, int? rating, int? mark, string? label, long? category, string? chapters) {
         return Modify(name, size, duration, converted, lastModified, deleted, rating, mark, label, category, chapters);
     }
@@ -250,4 +249,14 @@ public class FileEntry : IMediaFile {
     long? IMediaFile.Category => Category;
     string IMediaFile.CategoryName => CategoryName ?? string.Empty;
     string IMediaFile.Chapters => Chapters ?? string.Empty;
+    JsonArray? IMediaFile.ChaptersInJsonArray { 
+        get {
+            if (!string.IsNullOrWhiteSpace(Chapters)) {
+                if (JsonNode.Parse(Chapters) is JsonArray array) {
+                    return array;
+                }
+            }
+            return null;
+        }
+    }
 }

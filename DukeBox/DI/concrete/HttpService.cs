@@ -6,7 +6,6 @@ using io.github.toyota32k.BooLib.Server.http.model;
 using io.github.toyota32k.BooLib.Server.http.response;
 using io.github.toyota32k.BooLib.Server.mdns;
 using io.github.toyota32k.BooLib.Utils;
-using Newtonsoft.Json;
 using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
@@ -15,6 +14,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Security.Cryptography.X509Certificates;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -146,8 +146,8 @@ public class HttpService : IHttpService {
                     List<ICategory> categories = [CategoryEntry.DEFAULT, .. DBService.CategoryStore.List()];
                     var list = categories.Select(it=> new Dictionary<string, object>(){
                         {"label", it.Name},
-                        {"color", $"{it.Color}"},
-                        {"sort", $"{it.SortOrder}"},
+                        {"color", it.Color},
+                        {"sort", it.SortOrder},
                         {"svg", it.IconPath},
                     }).ToList();
                     var dic = new Dictionary<string, object>(){
@@ -309,6 +309,13 @@ public class HttpService : IHttpService {
                 process: (HttpRequest request) => {
                     return RequestItem(request, "p");
                 }),
+            // audio アイテムを取得
+            Route.get(
+                name: "audio",
+                regex: @"/audio\?\w+",
+                process: (HttpRequest request) => {
+                    return RequestItem(request, "a");
+                }),
             
             // タイプを指定しないでアイテムを取得する。
             Route.get(
@@ -336,11 +343,9 @@ public class HttpService : IHttpService {
                         { "cmd", "chapter"},
                         { "id", id },
                     };
-                    if (entry.Chapters!=null) {
-                        var list = JsonConvert.DeserializeObject(entry.Chapters);
-                        if(list != null) {
-                           dic["chapters"] = list;
-                        }
+                    var chapters = entry.ChaptersInJsonArray;
+                    if (chapters != null) {
+                        dic["chapters"] = chapters;
                     }
                     return TextHttpResponse.FromJson(request, dic);
                 }),
@@ -377,11 +382,14 @@ public class HttpService : IHttpService {
                     if (string.IsNullOrWhiteSpace(content)) {
                         return HttpErrorResponse.BadRequest(request);
                     }
-                    var json = JsonHelper.TryParse(content);
+                    var json = JsonUtil.Parse(content);
                     if (json == null) {
                         return HttpErrorResponse.BadRequest(request);
                     }
-                    var id = json.GetString("id");
+                    var id = json.GetStringOrNull("id");
+                    if (id == null) {
+                        return HttpErrorResponse.BadRequest(request);
+                    }
                     var entry = DBService.MediaFileStore.GetById(Convert.ToInt64(id));
                     if (entry==null) {
                         return HttpErrorResponse.NotFound(request);
@@ -427,11 +435,14 @@ public class HttpService : IHttpService {
                         process: request => {
                             //Source?.StandardOutput("BooServer: cmd=current (put)");
                             Logger.Debug("Current (Put)");
-                            var json = JsonHelper.TryParse(request.Content?.TextContent);
+                            var json = JsonUtil.Parse(request.Content?.TextContent);
                             if (json == null) {
                                 return HttpErrorResponse.BadRequest(request);
                             }
-                            var id = json.GetString("id");
+                            var id = json.GetStringOrNull("id");
+                            if (id == null) {
+                                return HttpErrorResponse.BadRequest(request);
+                            }
                             // ToDo
                             // Source.CurrentId = id;
                             return TextHttpResponse.FromJson(request, new Dictionary<string, object>() {

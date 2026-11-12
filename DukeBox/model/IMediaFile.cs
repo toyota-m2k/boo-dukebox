@@ -1,4 +1,6 @@
-﻿namespace DukeBox.model; 
+﻿using System.Text.Json.Nodes;
+
+namespace DukeBox.model; 
 public interface IMediaFile {
     public long Id { get; }
     public string Name { get; }
@@ -26,6 +28,7 @@ public interface IMediaFile {
     public string ContentType { get; }                      // MIMEタイプ（Content-Type）を返す。mp4ならvideo/mp4、pngならimage/png、jpg/jpegならimage/jpeg、mp3/m4aならaudio/mpeg
     public int ComplementalRating { get; }                  // Rating == 0 （デフォルト）を 3 として扱うプロパティ
     public string ComplementalCategoryName { get; }
+    public JsonArray? ChaptersInJsonArray { get; }
     /**
      * 変更可能なプロパティを変更した新しいIMediaFileインスタンスを返す。
      * 変更しない項目は null （デフォルト引数）を指定する。
