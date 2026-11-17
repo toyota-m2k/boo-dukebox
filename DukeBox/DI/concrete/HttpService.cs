@@ -98,7 +98,7 @@ public class HttpService : IHttpService {
             { "rating", entry.Rating },
             { "mark", entry.Mark },
             { "label", entry.Label },
-            { "categoryName", entry.CategoryName },
+            { "category", entry.CategoryName },
         };
     }
 
@@ -119,23 +119,49 @@ public class HttpService : IHttpService {
                 name: "capability",
                 regex:@"/capability",
                 process: (HttpRequest request) => {
-                    var cap = new Dictionary<string,object> {
-                        {"cmd", "capability"},
-                        {"serverName", "DukeBox"},
-                        {"version", 3},
-                        {"root", "/" },
-                        {"category", 1},
-                        {"rating", 2},
-                        {"mark", 2},
-                        {"chapter", true},
-                        {"reputation", 2 },             // v3では使わないが下位互換のために。reputation (category/mark/rating) コマンド対応 1:RO /2:RW
-                        {"diff", false},                // date以降の更新チェック(check)、差分リスト取得に対応
-                        {"sync", false },               // 端末間同期
-                        {"acceptRequest", false },        // register command をサポートする
-                        {"hasView", true },              // current get/set をサポートする
-                        {"authentication", false },
-                        {"types", "vap" },                // v: video, a: audio, p: photo
-                    };
+                    Logger.Info("rest: capability");
+                    var p = QueryParser.Parse(request.Url);
+                    var v = Convert.ToInt32(p.GetValue("v", "0"));
+                    Dictionary<string,object> cap;
+                    if (v < 3) {
+                        cap = new Dictionary<string,object> {
+                            {"cmd", "capability"},
+                            {"serverName", "DukeBox"},
+                            {"version", 2},
+                            {"root", "/" },
+                            {"category", true},
+                            {"rating", true},
+                            {"mark", true},
+                            {"chapter", true},
+                            {"reputation", 0 },             // reputation (category/mark/rating) コマンド対応 1:RO /2:RW
+                            {"diff", false},                // date以降の更新チェック(check)、差分リスト取得に対応
+                            {"sync", false },               // 端末間同期
+                            {"acceptRequest", false },        // register command をサポートする
+                            {"hasView", true },              // current get/set をサポートする
+                            {"authentication", false},
+                            {"types", "vap" },                // v: video, a: audio, p: photo
+                        };
+                    } else {
+                        cap = new Dictionary<string,object> {
+                            {"cmd", "capability"},
+                            {"serverName", "DukeBox"},
+                            {"version", 3},
+                            {"root", "/" },
+                            {"category", 1},
+                            {"rating", 2},
+                            {"mark", 2},
+                            {"chapter", 2},                 // chapter コマンド対応 1:RO /2:RW
+                            {"reputation", 2 },             // reputation (category/mark/rating) コマンド対応 1:RO /2:RW
+                            {"props", 3 },                  // propsコマンド：property編集許可：　1: name / 2: label / 3: both
+                            {"diff", false},                // date以降の更新チェック(check)、差分リスト取得に対応
+                            {"sync", false },               // 端末間同期
+                            {"acceptRequest", false },        // register command をサポートする
+                            {"hasView", true },              // current get/set をサポートする
+                            {"authentication", false },
+                            {"types", "vap" },                // v: video, a: audio, p: photo
+                            {"categoryLabel", "Channel" }
+                        };
+                    }
                     return TextHttpResponse.FromJson(request, cap);
                 }),
             // categories：全カテゴリリストの要求
@@ -143,6 +169,7 @@ public class HttpService : IHttpService {
                 name: "categories",
                 regex: @"/categories",
                 process: (request) => {
+                    Logger.Info("rest: categories");
                     List<ICategory> categories = [CategoryEntry.DEFAULT, .. DBService.CategoryStore.List()];
                     var list = categories.Select(it=> new Dictionary<string, object>(){
                         {"label", it.Name},
@@ -152,7 +179,8 @@ public class HttpService : IHttpService {
                     }).ToList();
                     var dic = new Dictionary<string, object>(){
                         { "cmd", "categories"},
-                        {"categories", list},
+                        { "categories", list},
+                        { "unchecked", "Default" }
                     };
                     return TextHttpResponse.FromJson(request, dic);
                 }),
@@ -161,6 +189,7 @@ public class HttpService : IHttpService {
                 name: "marks",
                 regex: @"/marks",
                 process: (request) => {
+                    Logger.Info("rest: marks");
                     var list = Mark.List.Select(it=>new Dictionary<string, object> {
                         {"mark", it.mark },
                         {"label",it.label},
@@ -177,6 +206,7 @@ public class HttpService : IHttpService {
                 name: "ratings",
                 regex: @"/ratings",
                 process: (request)=> {
+                    Logger.Info("rest: ratings");
                     var list = Rating.List.Select(it=>new Dictionary<string,object> {
                         {"rating", it.rating},
                         {"label",it.label},
@@ -350,9 +380,40 @@ public class HttpService : IHttpService {
                     return TextHttpResponse.FromJson(request, dic);
                 }),
 
+            Route.put(
+                name: "chapters",
+                regex: @"/chapter",
+                process: (request) => {
+                    var content = request.Content?.TextContent;
+                    if (string.IsNullOrWhiteSpace(content)) {
+                        return HttpErrorResponse.BadRequest(request);
+                    }
+                    var json = JsonUtil.Parse(content);
+                    if (json == null) {
+                        return HttpErrorResponse.BadRequest(request);
+                    }
+                    var id = json.GetStringOrNull("id");
+                    if (id == null) {
+                        return HttpErrorResponse.BadRequest(request);
+                    }
+                    var entry = DBService.MediaFileStore.GetById(Convert.ToInt64(id));
+                    if(entry==null) {
+                        return HttpErrorResponse.NotFound(request);
+                    }
+                    var chapters = json.GetStringOrNull("chapters");
+                    DBService.EditMediaFileStore(store => {
+                        store.Update(entry, chapters:chapters);
+                        return true;
+                    });
+                    return TextHttpResponse.FromJson(request, new Dictionary<string, object>() {
+                        { "cmd", "chapter" },
+                        { "id", $"{id}" },
+                    });
+                }),
+
             #endregion
 
-            #region Reputation
+            #region Reputation / Properties
 
             Route.get(
                 name: "ytPlayer Get Reputation",
@@ -408,6 +469,44 @@ public class HttpService : IHttpService {
                         { "id", $"{id}" },
                     });
                 }),
+
+            Route.put(
+                name: "Put Properties (extension of Reputation)",
+                regex: @"/props",
+                process: (request) => {
+                    var content = request.Content?.TextContent;
+                    if (string.IsNullOrWhiteSpace(content)) {
+                        return HttpErrorResponse.BadRequest(request);
+                    }
+                    var json = JsonUtil.Parse(content);
+                    if (json == null) {
+                        return HttpErrorResponse.BadRequest(request);
+                    }
+                    var id = json.GetStringOrNull("id");
+                    if (id == null) {
+                        return HttpErrorResponse.BadRequest(request);
+                    }
+                    var entry = DBService.MediaFileStore.GetById(Convert.ToInt64(id));
+                    if (entry==null) {
+                        return HttpErrorResponse.NotFound(request);
+                    }
+                    var iRating = json.GetInt("rating",-1);
+                    var iMark = json.GetInt("mark", -1);
+                    var name = json.GetStringOrNull("name");
+                    var label = json.GetStringOrNull("label");
+                    int? rating = iRating>=0 ? iRating : null;
+                    int? mark = iMark>=0 ? iMark : null;
+
+                    DBService.EditMediaFileStore(store => {
+                        store.Update(entry, rating:rating, mark:mark, name:name, label:label);
+                        return true;
+                    });
+                    return TextHttpResponse.FromJson(request, new Dictionary<string, object>() {
+                        { "cmd", "props" },
+                        { "id", $"{id}" },
+                    });
+                }),
+
             #endregion
 
             #region Current Item on UI
