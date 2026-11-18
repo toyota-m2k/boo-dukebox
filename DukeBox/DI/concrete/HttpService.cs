@@ -400,7 +400,8 @@ public class HttpService : IHttpService {
                     if(entry==null) {
                         return HttpErrorResponse.NotFound(request);
                     }
-                    var chapters = json.GetStringOrNull("chapters");
+                    var chaptersJson = json["chapters"];
+                    var chapters = JsonSerializer.Serialize(chaptersJson, new JsonSerializerOptions() { WriteIndented = false });
                     DBService.EditMediaFileStore(store => {
                         store.Update(entry, chapters:chapters);
                         return true;
