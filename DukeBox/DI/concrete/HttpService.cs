@@ -99,6 +99,7 @@ public class HttpService : IHttpService {
             { "mark", entry.Mark },
             { "label", entry.Label },
             { "category", entry.CategoryName },
+            { "duration", entry.Duration }
         };
     }
 

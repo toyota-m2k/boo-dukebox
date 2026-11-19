@@ -223,13 +223,24 @@
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                 BorderThickness="0,1,0,0"
                 Padding="32,12">
-            <Button HorizontalAlignment="Right" Style="{StaticResource AccentButtonStyle}"
-                    Padding="20,8" Command="{x:Bind ViewModel.StartServerCommand}">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <FontIcon Glyph="&#xE768;" FontSize="14"/>
-                    <TextBlock Text="Start Server"/>
-                </StackPanel>
-            </Button>
+            <StackPanel 
+                Orientation="Horizontal"
+                HorizontalAlignment="Right"
+                Spacing="8"
+                >
+                <CheckBox 
+                    Content="Auto Start"
+                    IsChecked="{x:Bind ViewModel.AutoStartServer.Value, Mode=TwoWay}"
+                    VerticalAlignment="Center"/>
+
+                <Button HorizontalAlignment="Right" Style="{StaticResource AccentButtonStyle}"
+                        Padding="20,8" Command="{x:Bind ViewModel.StartServerCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE768;" FontSize="14"/>
+                        <TextBlock Text="Start Server"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
         </Border>
 
         <!-- Busy overlay -->

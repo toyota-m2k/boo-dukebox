@@ -94,6 +94,9 @@ public class EntryPageViewModel {
         }
     }
 
+    public ReactiveProperty<bool> AutoStartServer = new();
+    public bool FirstTime { get; set; } = true;
+
     public ReactiveCommand StartServerCommand { get; } = new();
 
     #endregion
@@ -170,6 +173,12 @@ public class EntryPageViewModel {
         // Status
         IsBusyMessageVisible = BusyMessage.Select(it => !string.IsNullOrWhiteSpace(it)).ToReadOnlyReactiveProperty();
         StartServerCommand.Subscribe(StartServer);
+
+        AutoStartServer.Value = settingsService.AutoStartServer;
+        AutoStartServer.Subscribe(v => {
+            _settingsService.AutoStartServer = v;
+            _settingsService.Save();
+        });
     }
 
     private void OnChannelChanged(ICategory? newChannel) {

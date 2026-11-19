@@ -101,6 +101,12 @@ public class SettingsService : ISettingsService {
         set => DBService.KVStore[KEY_PFX_PASSWORD] = value;
     }
 
+    static readonly string KEY_AUTO_START_SERVER = "AutoStart";
+    public bool AutoStartServer {
+        get => DBService.KVStore[KEY_AUTO_START_SERVER] == "true";
+        set => DBService.KVStore[KEY_AUTO_START_SERVER] = value ? "true" : "false";
+    }
+
     public void Save() {
         DBService.KVStore.SaveChanges();
     }

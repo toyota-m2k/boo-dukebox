@@ -11,6 +11,7 @@ public interface ISettingsService {
     string WorkingPath { get; set; }
 
     // Converted Source
+    bool AutoStartServer { get; set; }
     string ConvertedSourcePath { get; set; }
     // Server
     bool EnableHttp { get; set; }
